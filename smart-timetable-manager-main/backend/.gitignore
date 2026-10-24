@@ -1,0 +1,11 @@
+# Environment variables & secrets
+.env
+.env.*
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+
+# Database temporary backups (exclude backup dumps, preserve primary edunova.db)
+*.backup*
+edunova.db.backup*

@@ -1,0 +1,38 @@
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Python cache & tests
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor & OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Database backup copies (preserve primary backend/edunova.db for private repo deployment)
+backend/*.backup*
+backend/*.db.backup*
+*.backup*
+*.backup_*
+
+# Note: backend/edunova.db contains your existing project data.
+# For a private GitHub repository, keep backend/edunova.db tracked so Render can initialize the persistent disk.
+# If you ever make the repository public, uncomment the line below:
+# backend/edunova.db
