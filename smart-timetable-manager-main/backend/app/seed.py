@@ -25,25 +25,19 @@ CLASSES = [
 ]
 
 # ==========================================================
-# 2. ROOMS DEFINITION
+# 2. ROOMS DEFINITION (10 INTENDED FACILITIES)
 # ==========================================================
 ROOMS = [
-    ("Room 101", "Classroom", 60),
     ("Room 102", "Classroom", 60),
     ("Room 103", "Classroom", 60),
     ("Room 104", "Classroom", 60),
-    ("Room 609A", "Classroom/Lab", 40),
-    ("Room 609B", "Classroom/Lab", 40),
-    ("Room MB614", "Classroom", 40),
+    ("Lab 609A", "Laboratory", 40),
+    ("Lab 609B", "Laboratory", 40),
     ("AI1", "AI Lab 1", 40),
     ("AI2", "AI Lab 2", 40),
     ("CN1", "CN Lab 1", 40),
     ("IIOT", "IIOT Lab", 40),
     ("ARVR", "AR/VR Lab", 40),
-    ("IOT", "IOT Lab", 40),
-    ("Lab 201", "AI Lab", 40),
-    ("Lab 202", "DS Lab", 40),
-    ("Online", "Virtual Room", 100),
 ]
 
 # ==========================================================
@@ -116,10 +110,10 @@ OFFICIAL_TIMETABLE_ENTRIES = [
     ("SY-AD1", "Monday", "15:15", "17:15", "Scientific Research & Publication", "IIOT", "DRD", "Batch C", True, "Practical"),
     ("SY-AD1", "Tuesday", "08:00", "10:00", "Community Engagement and Innovation Lab-I", "AI2", "ASS", "Batch A", True, "Practical"),
     ("SY-AD1", "Tuesday", "08:00", "10:00", "Problem Solving & Object-Oriented Programming Lab", "CN1", "ANA", "Batch B", True, "Practical"),
-    ("SY-AD1", "Tuesday", "08:00", "10:00", "Professional Communication & Personality Development", "Room 609A", "MK", "Batch C", True, "Practical"),
+    ("SY-AD1", "Tuesday", "08:00", "10:00", "Professional Communication & Personality Development", "Lab 609A", "MK", "Batch C", True, "Practical"),
     ("SY-AD1", "Tuesday", "10:15", "12:15", "Sustainable Engineering Practices", "Room 103", "VL", None, False, "Theory"),
     ("SY-AD1", "Tuesday", "13:00", "15:00", "Sustainable Engineering Practices Lab", "AI1", "VL", "Batch A", True, "Practical"),
-    ("SY-AD1", "Wednesday", "08:00", "10:00", "Professional Communication & Personality Development", "Room 609A", "MK", "Batch A", True, "Practical"),
+    ("SY-AD1", "Wednesday", "08:00", "10:00", "Professional Communication & Personality Development", "Lab 609A", "MK", "Batch A", True, "Practical"),
     ("SY-AD1", "Wednesday", "08:00", "10:00", "Community Engagement and Innovation Lab-I", "AI2", "ASS", "Batch B", True, "Practical"),
     ("SY-AD1", "Wednesday", "08:00", "10:00", "Operating Systems Laboratory", "AI1", "SJN", "Batch C", True, "Practical"),
     ("SY-AD1", "Wednesday", "10:15", "11:15", "Discrete Mathematics", "Room 103", "ASS", None, False, "Theory"),
@@ -141,27 +135,27 @@ OFFICIAL_TIMETABLE_ENTRIES = [
     ("SY-AD1", "Friday", "16:15", "17:15", "Universal Human Values", "Room 102", "ANA", None, False, "Tutorial"),
 
     # SY AD2 (Semester III)
-    ("SY-AD2", "Monday", "08:00", "10:00", "Professional Communication & Personality Development", "Room 609A", "MK", "Batch A", True, "Practical"),
+    ("SY-AD2", "Monday", "08:00", "10:00", "Professional Communication & Personality Development", "Lab 609A", "MK", "Batch A", True, "Practical"),
     ("SY-AD2", "Monday", "08:00", "10:00", "Operating Systems Laboratory", "ARVR", "KPS", "Batch B", True, "Practical"),
-    ("SY-AD2", "Monday", "08:00", "10:00", "Problem Solving & Object-Oriented Programming Lab", "Room 609B", "MKM", "Batch C", True, "Practical"),
+    ("SY-AD2", "Monday", "08:00", "10:00", "Problem Solving & Object-Oriented Programming Lab", "Lab 609B", "MKM", "Batch C", True, "Practical"),
     ("SY-AD2", "Monday", "10:15", "11:15", "Problem Solving & Object-Oriented Programming", "Room 104", "MKM", None, False, "Theory"),
     ("SY-AD2", "Monday", "11:15", "12:15", "Discrete Mathematics", "Room 104", "SDJ", None, False, "Theory"),
     ("SY-AD2", "Monday", "13:00", "15:00", "Operating Systems Laboratory", "AI1", "KPS", "Batch A", True, "Practical"),
-    ("SY-AD2", "Monday", "13:00", "15:00", "Community Engagement and Innovation Lab-I", "Room 609A", "SDJ", "Batch B", True, "Practical"),
-    ("SY-AD2", "Monday", "13:00", "15:00", "Scientific Research & Publication", "Room 609B", "VL", "Batch C", True, "Practical"),
+    ("SY-AD2", "Monday", "13:00", "15:00", "Community Engagement and Innovation Lab-I", "Lab 609A", "SDJ", "Batch B", True, "Practical"),
+    ("SY-AD2", "Monday", "13:00", "15:00", "Scientific Research & Publication", "Lab 609B", "VL", "Batch C", True, "Practical"),
     ("SY-AD2", "Tuesday", "08:00", "09:00", "Discrete Mathematics", "Room 102", "SDJ", None, False, "Theory"),
     ("SY-AD2", "Tuesday", "09:00", "10:00", "Operating System & Administration", "Room 102", "KPS", None, False, "Theory"),
     ("SY-AD2", "Tuesday", "10:15", "12:15", "Sustainable Engineering Practices", "Room 103", "VL", None, False, "Theory"),
     ("SY-AD2", "Tuesday", "13:00", "15:00", "Sustainable Engineering Practices Lab", "AI1", "VL", "Batch A", True, "Practical"),
-    ("SY-AD2", "Wednesday", "10:15", "12:15", "Scientific Research & Publication", "Room 609A", "VL", "Batch A", True, "Practical"),
-    ("SY-AD2", "Wednesday", "10:15", "12:15", "Problem Solving & Object-Oriented Programming Lab", "Room 609B", "MKM", "Batch B", True, "Practical"),
+    ("SY-AD2", "Wednesday", "10:15", "12:15", "Scientific Research & Publication", "Lab 609A", "VL", "Batch A", True, "Practical"),
+    ("SY-AD2", "Wednesday", "10:15", "12:15", "Problem Solving & Object-Oriented Programming Lab", "Lab 609B", "MKM", "Batch B", True, "Practical"),
     ("SY-AD2", "Wednesday", "10:15", "12:15", "Operating Systems Laboratory", "AI2", "KPS", "Batch C", True, "Practical"),
     ("SY-AD2", "Wednesday", "13:00", "14:00", "Discrete Mathematics", "Room 102", "SDJ", None, False, "Theory"),
     ("SY-AD2", "Wednesday", "14:00", "15:00", "Problem Solving & Object-Oriented Programming", "Room 102", "MKM", None, False, "Theory"),
     ("SY-AD2", "Wednesday", "15:15", "17:15", "Community Engagement and Innovation Lab-I", "AI1", "KPS", "Batch A", True, "Practical"),
-    ("SY-AD2", "Wednesday", "15:15", "17:15", "Scientific Research & Publication", "Room 609A", "VL", "Batch B", True, "Practical"),
+    ("SY-AD2", "Wednesday", "15:15", "17:15", "Scientific Research & Publication", "Lab 609A", "VL", "Batch B", True, "Practical"),
     ("SY-AD2", "Wednesday", "15:15", "17:15", "Community Engagement and Innovation Lab-I", "IIOT", "SDJ", "Batch C", True, "Practical"),
-    ("SY-AD2", "Thursday", "08:00", "10:00", "Problem Solving & Object-Oriented Programming Lab", "Room 609B", "MKM", "Batch A", True, "Practical"),
+    ("SY-AD2", "Thursday", "08:00", "10:00", "Problem Solving & Object-Oriented Programming Lab", "Lab 609B", "MKM", "Batch A", True, "Practical"),
     ("SY-AD2", "Thursday", "08:00", "10:00", "Community Engagement and Innovation Lab-I", "IIOT", "SDJ", "Batch B", True, "Practical"),
     ("SY-AD2", "Thursday", "08:00", "10:00", "Professional Communication & Personality Development", "Room 104", "MK", "Batch C", True, "Practical"),
     ("SY-AD2", "Thursday", "10:15", "11:15", "Problem Solving & Object-Oriented Programming", "Room 102", "MKM", None, False, "Theory"),
@@ -202,7 +196,7 @@ OFFICIAL_TIMETABLE_ENTRIES = [
     ("SY-AD3", "Thursday", "13:00", "14:00", "Discrete Mathematics", "Room 103", "ASS", None, False, "Theory"),
     ("SY-AD3", "Thursday", "14:00", "15:00", "Problem Solving & Object-Oriented Programming", "Room 103", "SAK", None, False, "Theory"),
     ("SY-AD3", "Friday", "08:00", "10:00", "Problem Solving & Object-Oriented Programming Lab", "ARVR", "SAK", "Batch A", True, "Practical"),
-    ("SY-AD3", "Friday", "08:00", "10:00", "Professional Communication & Personality Development", "Room 609A", "MK", "Batch B", True, "Practical"),
+    ("SY-AD3", "Friday", "08:00", "10:00", "Professional Communication & Personality Development", "Lab 609A", "MK", "Batch B", True, "Practical"),
     ("SY-AD3", "Friday", "08:00", "10:00", "Community Engagement and Innovation Lab-I", "IIOT", "SDK", "Batch C", True, "Practical"),
     ("SY-AD3", "Friday", "10:15", "12:15", "Sustainable Engineering Practices Lab", "AI1", "VL", "Batch B", True, "Practical"),
     ("SY-AD3", "Friday", "13:00", "15:00", "Sustainable Engineering Practices Lab", "AI1", "VL", "Batch C", True, "Practical"),
@@ -213,8 +207,8 @@ OFFICIAL_TIMETABLE_ENTRIES = [
     ("TY-AD1", "Monday", "08:00", "10:00", "Engineering Design and Innovation-I", "AI1", "ARA", "Batch B", True, "Practical"),
     ("TY-AD1", "Monday", "08:00", "10:00", "Engineering Design and Innovation-I", "CN1", "DB", "Batch C", True, "Practical"),
     ("TY-AD1", "Monday", "10:15", "12:15", "Artificial Intelligence & Machine Learning Laboratory", "CN1", "MSA", "Batch A", True, "Practical"),
-    ("TY-AD1", "Monday", "10:15", "12:15", "Computer Network & Cloud Computing Laboratory", "Room 609B", "PC", "Batch B", True, "Practical"),
-    ("TY-AD1", "Monday", "10:15", "12:15", "Edge Computing", "Room 609A", "DAG", "Batch C", True, "Practical"),
+    ("TY-AD1", "Monday", "10:15", "12:15", "Computer Network & Cloud Computing Laboratory", "Lab 609B", "PC", "Batch B", True, "Practical"),
+    ("TY-AD1", "Monday", "10:15", "12:15", "Edge Computing", "Lab 609A", "DAG", "Batch C", True, "Practical"),
     ("TY-AD1", "Monday", "13:00", "14:00", "Edge Computing / AR & VR", "Room 104", "DAG", None, False, "Theory"),
     ("TY-AD1", "Monday", "14:00", "15:00", "Sustainable Engineering Practices", "Room 104", "ARA", None, False, "Theory"),
     ("TY-AD1", "Monday", "15:15", "16:15", "Computer Network & Cloud Computing", "Room 104", "PC", None, False, "Theory"),
@@ -232,7 +226,7 @@ OFFICIAL_TIMETABLE_ENTRIES = [
     ("TY-AD1", "Wednesday", "16:15", "17:15", "Automata Theory and Applications", "Room 104", "GR", None, False, "Theory"),
     ("TY-AD1", "Thursday", "10:15", "12:15", "Online OEL Lecture", "Online", "GR", None, False, "Theory"),
     ("TY-AD1", "Thursday", "13:00", "15:00", "AR & VR", "ARVR", "RCY", "Batch A", True, "Practical"),
-    ("TY-AD1", "Thursday", "13:00", "15:00", "Edge Computing", "Room 609A", "DAG", "Batch B", True, "Practical"),
+    ("TY-AD1", "Thursday", "13:00", "15:00", "Edge Computing", "Lab 609A", "DAG", "Batch B", True, "Practical"),
     ("TY-AD1", "Thursday", "13:00", "15:00", "Computer Network & Cloud Computing Laboratory", "AI2", "PC", "Batch C", True, "Practical"),
     ("TY-AD1", "Thursday", "15:15", "17:15", "Engineering Design and Innovation-I", "CN1", "ARA", "Batch A", True, "Practical"),
     ("TY-AD1", "Thursday", "15:15", "17:15", "Engineering Design and Innovation-I", "AI1", "SAK", "Batch B", True, "Practical"),
@@ -259,11 +253,22 @@ def seed_database(db):
 
     class_map = {c.name: c for c in db.query(ClassModel).all()}
 
-    # 2. Rooms
+    # 2. Rooms - Ensure exactly the 10 intended facilities are active
+    intended_names = {name for name, _, _ in ROOMS}
     for name, rtype, cap in ROOMS:
         r = db.query(Room).filter(Room.name == name).first()
         if not r:
             db.add(Room(name=name, room_type=rtype, capacity=cap, active=True))
+        else:
+            r.active = True
+            r.room_type = rtype
+            r.capacity = cap
+    db.commit()
+
+    # Deactivate any non-intended / sample / duplicate facilities
+    for r in db.query(Room).all():
+        if r.name not in intended_names:
+            r.active = False
     db.commit()
 
     # 3. Faculty

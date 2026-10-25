@@ -1,4 +1,50 @@
 /**
+ * Shared Practical Batch & Class Formatting Utility
+ */
+function extractBatchLetter(batch) {
+  if (!batch) return null;
+  const s = String(batch).trim();
+  if (/^[A-C]$/i.test(s)) return s.toUpperCase();
+  const m = s.match(/(?:batch|division|div|sec)?[\s\-_:\(]*([A-C])(?:\)|$|\s)/i);
+  if (m) return m[1].toUpperCase();
+  const m2 = s.match(/([A-C])/i);
+  if (m2) return m2[1].toUpperCase();
+  const m3 = s.match(/([A-C])$/i);
+  if (m3) return m3[1].toUpperCase();
+  return s;
+}
+
+function formatClassWithBatch(classOrSession, batch, isLab) {
+  if (classOrSession && typeof classOrSession === 'object') {
+    const s = classOrSession;
+    const base = (s.className || s.class_name || s.classDiv || '').replace(/-/g, ' ').replace(/\s*\([A-Za-z0-9\s]+\)$/, '').trim();
+    const isPractical = s.isLab || s.is_lab || s.type === 'Lab Practical' || s.session_type === 'Practical';
+    return formatClassWithBatch(base, s.batch, isPractical);
+  }
+  let base = (classOrSession || '').replace(/-/g, ' ').replace(/\s*\([A-Za-z0-9\s]+\)$/, '').trim();
+  if (!base) return '';
+
+  const bLetter = extractBatchLetter(batch);
+
+  if (isLab) {
+    if (bLetter) {
+      return `${base} (${bLetter})`;
+    } else {
+      return `${base} (Batch Required)`;
+    }
+  }
+  if (bLetter) {
+    return `${base} (${bLetter})`;
+  }
+  return base;
+}
+
+if (typeof window !== 'undefined') {
+  window.extractBatchLetter = extractBatchLetter;
+  window.formatClassWithBatch = formatClassWithBatch;
+}
+
+/**
  * EduNova – Smart Faculty Timetable Management System
  * Shared Sample Timetable Data & Scheduling Utilities
  */
@@ -233,7 +279,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SJN",
     "facultyDbId": 9,
     "facultyName": "Mrs. Sinu J. Nambiar",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (A)",
     "className": "SY-AD1",
     "room": "AI1",
     "batch": "Batch A",
@@ -251,7 +297,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ASS",
     "facultyDbId": 8,
     "facultyName": "Mrs. Abhilasha S. Shinde",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (B)",
     "className": "SY-AD1",
     "room": "AI2",
     "batch": "Batch B",
@@ -269,7 +315,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-DRD",
     "facultyDbId": 19,
     "facultyName": "Dr. Dhanraj R. Dhotre",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (C)",
     "className": "SY-AD1",
     "room": "IIOT",
     "batch": "Batch C",
@@ -287,7 +333,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ASS",
     "facultyDbId": 8,
     "facultyName": "Mrs. Abhilasha S. Shinde",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (A)",
     "className": "SY-AD1",
     "room": "AI2",
     "batch": "Batch A",
@@ -305,7 +351,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ANA",
     "facultyDbId": 7,
     "facultyName": "Mrs. Ashvini N. Ahirrao",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (B)",
     "className": "SY-AD1",
     "room": "CN1",
     "batch": "Batch B",
@@ -323,7 +369,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MK",
     "facultyDbId": 18,
     "facultyName": "Dr. Mrunal Kothari",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (C)",
     "className": "SY-AD1",
     "room": "Room 609A",
     "batch": "Batch C",
@@ -359,7 +405,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (A)",
     "className": "SY-AD1",
     "room": "AI1",
     "batch": "Batch A",
@@ -377,7 +423,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MK",
     "facultyDbId": 18,
     "facultyName": "Dr. Mrunal Kothari",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (A)",
     "className": "SY-AD1",
     "room": "Room 609A",
     "batch": "Batch A",
@@ -395,7 +441,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ASS",
     "facultyDbId": 8,
     "facultyName": "Mrs. Abhilasha S. Shinde",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (B)",
     "className": "SY-AD1",
     "room": "AI2",
     "batch": "Batch B",
@@ -413,7 +459,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SJN",
     "facultyDbId": 9,
     "facultyName": "Mrs. Sinu J. Nambiar",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (C)",
     "className": "SY-AD1",
     "room": "AI1",
     "batch": "Batch C",
@@ -467,7 +513,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-DRD",
     "facultyDbId": 19,
     "facultyName": "Dr. Dhanraj R. Dhotre",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (A)",
     "className": "SY-AD1",
     "room": "IIOT",
     "batch": "Batch A",
@@ -485,7 +531,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MK",
     "facultyDbId": 18,
     "facultyName": "Dr. Mrunal Kothari",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (B)",
     "className": "SY-AD1",
     "room": "Room MB614",
     "batch": "Batch B",
@@ -503,7 +549,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-GR",
     "facultyDbId": 16,
     "facultyName": "Mrs. Gayatri Rukare",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (C)",
     "className": "SY-AD1",
     "room": "ARVR",
     "batch": "Batch C",
@@ -557,7 +603,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ASS",
     "facultyDbId": 8,
     "facultyName": "Mrs. Abhilasha S. Shinde",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (A)",
     "className": "SY-AD1",
     "room": "ARVR",
     "batch": "Batch A",
@@ -575,7 +621,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-DRD",
     "facultyDbId": 19,
     "facultyName": "Dr. Dhanraj R. Dhotre",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (B)",
     "className": "SY-AD1",
     "room": "IIOT",
     "batch": "Batch B",
@@ -593,7 +639,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ANA",
     "facultyDbId": 7,
     "facultyName": "Mrs. Ashvini N. Ahirrao",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (C)",
     "className": "SY-AD1",
     "room": "CN1",
     "batch": "Batch C",
@@ -629,7 +675,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ANA",
     "facultyDbId": 7,
     "facultyName": "Mrs. Ashvini N. Ahirrao",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (A)",
     "className": "SY-AD1",
     "room": "CN1",
     "batch": "Batch A",
@@ -647,7 +693,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SJN",
     "facultyDbId": 9,
     "facultyName": "Mrs. Sinu J. Nambiar",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (B)",
     "className": "SY-AD1",
     "room": "AI1",
     "batch": "Batch B",
@@ -665,7 +711,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-GR",
     "facultyDbId": 16,
     "facultyName": "Mrs. Gayatri Rukare",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (C)",
     "className": "SY-AD1",
     "room": "AI2",
     "batch": "Batch C",
@@ -683,7 +729,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (B)",
     "className": "SY-AD1",
     "room": "AI1",
     "batch": "Batch B",
@@ -701,7 +747,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD1",
+    "classDiv": "SY AD1 (C)",
     "className": "SY-AD1",
     "room": "AI1",
     "batch": "Batch C",
@@ -737,7 +783,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MK",
     "facultyDbId": 18,
     "facultyName": "Dr. Mrunal Kothari",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (A)",
     "className": "SY-AD2",
     "room": "Room 609A",
     "batch": "Batch A",
@@ -755,7 +801,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-KPS",
     "facultyDbId": 13,
     "facultyName": "Mrs. Kalpna P. Saharan",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (B)",
     "className": "SY-AD2",
     "room": "ARVR",
     "batch": "Batch B",
@@ -773,7 +819,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MKM",
     "facultyDbId": 11,
     "facultyName": "Dr. M. K. Mokashi",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (C)",
     "className": "SY-AD2",
     "room": "Room 609B",
     "batch": "Batch C",
@@ -827,7 +873,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-KPS",
     "facultyDbId": 13,
     "facultyName": "Mrs. Kalpna P. Saharan",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (A)",
     "className": "SY-AD2",
     "room": "AI1",
     "batch": "Batch A",
@@ -845,7 +891,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SDJ",
     "facultyDbId": 12,
     "facultyName": "Mrs. Swati D. Jakkan",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (B)",
     "className": "SY-AD2",
     "room": "Room 609A",
     "batch": "Batch B",
@@ -863,7 +909,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (C)",
     "className": "SY-AD2",
     "room": "Room 609B",
     "batch": "Batch C",
@@ -935,7 +981,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (A)",
     "className": "SY-AD2",
     "room": "AI1",
     "batch": "Batch A",
@@ -953,7 +999,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (A)",
     "className": "SY-AD2",
     "room": "Room 609A",
     "batch": "Batch A",
@@ -971,7 +1017,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MKM",
     "facultyDbId": 11,
     "facultyName": "Dr. M. K. Mokashi",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (B)",
     "className": "SY-AD2",
     "room": "Room 609B",
     "batch": "Batch B",
@@ -989,7 +1035,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-KPS",
     "facultyDbId": 13,
     "facultyName": "Mrs. Kalpna P. Saharan",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (C)",
     "className": "SY-AD2",
     "room": "AI2",
     "batch": "Batch C",
@@ -1043,7 +1089,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-KPS",
     "facultyDbId": 13,
     "facultyName": "Mrs. Kalpna P. Saharan",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (A)",
     "className": "SY-AD2",
     "room": "AI1",
     "batch": "Batch A",
@@ -1061,7 +1107,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (B)",
     "className": "SY-AD2",
     "room": "Room 609A",
     "batch": "Batch B",
@@ -1079,7 +1125,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SDJ",
     "facultyDbId": 12,
     "facultyName": "Mrs. Swati D. Jakkan",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (C)",
     "className": "SY-AD2",
     "room": "IIOT",
     "batch": "Batch C",
@@ -1097,7 +1143,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MKM",
     "facultyDbId": 11,
     "facultyName": "Dr. M. K. Mokashi",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (A)",
     "className": "SY-AD2",
     "room": "Room 609B",
     "batch": "Batch A",
@@ -1115,7 +1161,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SDJ",
     "facultyDbId": 12,
     "facultyName": "Mrs. Swati D. Jakkan",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (B)",
     "className": "SY-AD2",
     "room": "IIOT",
     "batch": "Batch B",
@@ -1133,7 +1179,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MK",
     "facultyDbId": 18,
     "facultyName": "Dr. Mrunal Kothari",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (C)",
     "className": "SY-AD2",
     "room": "Room 104",
     "batch": "Batch C",
@@ -1187,7 +1233,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-KPS",
     "facultyDbId": 13,
     "facultyName": "Mrs. Kalpna P. Saharan",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (A)",
     "className": "SY-AD2",
     "room": "AI1",
     "batch": "Batch A",
@@ -1205,7 +1251,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MK",
     "facultyDbId": 18,
     "facultyName": "Dr. Mrunal Kothari",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (B)",
     "className": "SY-AD2",
     "room": "Room MB614",
     "batch": "Batch B",
@@ -1223,7 +1269,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SDJ",
     "facultyDbId": 12,
     "facultyName": "Mrs. Swati D. Jakkan",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (C)",
     "className": "SY-AD2",
     "room": "IIOT",
     "batch": "Batch C",
@@ -1259,7 +1305,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (B)",
     "className": "SY-AD2",
     "room": "AI1",
     "batch": "Batch B",
@@ -1277,7 +1323,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD2",
+    "classDiv": "SY AD2 (C)",
     "className": "SY-AD2",
     "room": "AI1",
     "batch": "Batch C",
@@ -1367,7 +1413,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MK",
     "facultyDbId": 18,
     "facultyName": "Dr. Mrunal Kothari",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (A)",
     "className": "SY-AD3",
     "room": "IIOT",
     "batch": "Batch A",
@@ -1385,7 +1431,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MKM",
     "facultyDbId": 11,
     "facultyName": "Dr. M. K. Mokashi",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (B)",
     "className": "SY-AD3",
     "room": "ARVR",
     "batch": "Batch B",
@@ -1403,7 +1449,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SDK",
     "facultyDbId": 17,
     "facultyName": "Mrs. Supriya D. Kapase",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (C)",
     "className": "SY-AD3",
     "room": "CN1",
     "batch": "Batch C",
@@ -1421,7 +1467,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-GR",
     "facultyDbId": 16,
     "facultyName": "Mrs. Gayatri Rukare",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (A)",
     "className": "SY-AD3",
     "room": "ARVR",
     "batch": "Batch A",
@@ -1439,7 +1485,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SAK",
     "facultyDbId": 14,
     "facultyName": "Mrs. Shruti A. Kulkarni",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (B)",
     "className": "SY-AD3",
     "room": "AI1",
     "batch": "Batch B",
@@ -1457,7 +1503,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-DAG",
     "facultyDbId": 15,
     "facultyName": "Mrs. Dhanashree A. Gore",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (C)",
     "className": "SY-AD3",
     "room": "IIOT",
     "batch": "Batch C",
@@ -1493,7 +1539,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (A)",
     "className": "SY-AD3",
     "room": "AI1",
     "batch": "Batch A",
@@ -1511,7 +1557,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MKM",
     "facultyDbId": 11,
     "facultyName": "Dr. M. K. Mokashi",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (A)",
     "className": "SY-AD3",
     "room": "CN1",
     "batch": "Batch A",
@@ -1529,7 +1575,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-DAG",
     "facultyDbId": 15,
     "facultyName": "Mrs. Dhanashree A. Gore",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (B)",
     "className": "SY-AD3",
     "room": "IIOT",
     "batch": "Batch B",
@@ -1547,7 +1593,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SAK",
     "facultyDbId": 14,
     "facultyName": "Mrs. Shruti A. Kulkarni",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (C)",
     "className": "SY-AD3",
     "room": "ARVR",
     "batch": "Batch C",
@@ -1565,7 +1611,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-GR",
     "facultyDbId": 16,
     "facultyName": "Mrs. Gayatri Rukare",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (A)",
     "className": "SY-AD3",
     "room": "AI1",
     "batch": "Batch A",
@@ -1583,7 +1629,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SDK",
     "facultyDbId": 17,
     "facultyName": "Mrs. Supriya D. Kapase",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (B)",
     "className": "SY-AD3",
     "room": "CN1",
     "batch": "Batch B",
@@ -1601,7 +1647,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MK",
     "facultyDbId": 18,
     "facultyName": "Dr. Mrunal Kothari",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (C)",
     "className": "SY-AD3",
     "room": "ARVR",
     "batch": "Batch C",
@@ -1655,7 +1701,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-DAG",
     "facultyDbId": 15,
     "facultyName": "Mrs. Dhanashree A. Gore",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (A)",
     "className": "SY-AD3",
     "room": "AI1",
     "batch": "Batch A",
@@ -1673,7 +1719,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SDK",
     "facultyDbId": 17,
     "facultyName": "Mrs. Supriya D. Kapase",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (B)",
     "className": "SY-AD3",
     "room": "ARVR",
     "batch": "Batch B",
@@ -1691,7 +1737,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ANA",
     "facultyDbId": 7,
     "facultyName": "Mrs. Ashvini N. Ahirrao",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (C)",
     "className": "SY-AD3",
     "room": "CN1",
     "batch": "Batch C",
@@ -1781,7 +1827,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SAK",
     "facultyDbId": 14,
     "facultyName": "Mrs. Shruti A. Kulkarni",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (A)",
     "className": "SY-AD3",
     "room": "ARVR",
     "batch": "Batch A",
@@ -1799,7 +1845,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MK",
     "facultyDbId": 18,
     "facultyName": "Dr. Mrunal Kothari",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (B)",
     "className": "SY-AD3",
     "room": "Room 609A",
     "batch": "Batch B",
@@ -1817,7 +1863,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SDK",
     "facultyDbId": 17,
     "facultyName": "Mrs. Supriya D. Kapase",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (C)",
     "className": "SY-AD3",
     "room": "IIOT",
     "batch": "Batch C",
@@ -1835,7 +1881,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (B)",
     "className": "SY-AD3",
     "room": "AI1",
     "batch": "Batch B",
@@ -1853,7 +1899,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-VL",
     "facultyDbId": 10,
     "facultyName": "Dr. Vina Lomte",
-    "classDiv": "SY AD3",
+    "classDiv": "SY AD3 (C)",
     "className": "SY-AD3",
     "room": "AI1",
     "batch": "Batch C",
@@ -1889,7 +1935,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ANA",
     "facultyDbId": 7,
     "facultyName": "Mrs. Ashvini N. Ahirrao",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (A)",
     "className": "TY-AD1",
     "room": "IOT",
     "batch": "Batch A",
@@ -1907,7 +1953,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ARA",
     "facultyDbId": 23,
     "facultyName": "Ms. Avani Anawardekar",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (B)",
     "className": "TY-AD1",
     "room": "AI1",
     "batch": "Batch B",
@@ -1925,7 +1971,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-DB",
     "facultyDbId": 24,
     "facultyName": "Mrs. Deepali Bhaturkar",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (C)",
     "className": "TY-AD1",
     "room": "CN1",
     "batch": "Batch C",
@@ -1943,7 +1989,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MSA",
     "facultyDbId": 20,
     "facultyName": "Mrs. Mayuri S. Agrawal",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (A)",
     "className": "TY-AD1",
     "room": "CN1",
     "batch": "Batch A",
@@ -1961,7 +2007,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-PC",
     "facultyDbId": 21,
     "facultyName": "Mrs. Pooja Chavan",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (B)",
     "className": "TY-AD1",
     "room": "Room 609B",
     "batch": "Batch B",
@@ -1979,7 +2025,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-DAG",
     "facultyDbId": 15,
     "facultyName": "Mrs. Dhanashree A. Gore",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (C)",
     "className": "TY-AD1",
     "room": "Room 609A",
     "batch": "Batch C",
@@ -2123,7 +2169,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ARA",
     "facultyDbId": 23,
     "facultyName": "Ms. Avani Anawardekar",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (A)",
     "className": "TY-AD1",
     "room": "IIOT",
     "batch": "Batch A",
@@ -2177,7 +2223,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-PC",
     "facultyDbId": 21,
     "facultyName": "Mrs. Pooja Chavan",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (A)",
     "className": "TY-AD1",
     "room": "CN1",
     "batch": "Batch A",
@@ -2195,7 +2241,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-MSA",
     "facultyDbId": 20,
     "facultyName": "Mrs. Mayuri S. Agrawal",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (B)",
     "className": "TY-AD1",
     "room": "AI1",
     "batch": "Batch B",
@@ -2213,7 +2259,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-DB",
     "facultyDbId": 24,
     "facultyName": "Mrs. Deepali Bhaturkar",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (C)",
     "className": "TY-AD1",
     "room": "AI2",
     "batch": "Batch C",
@@ -2285,7 +2331,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-RCY",
     "facultyDbId": 22,
     "facultyName": "Mr. Rishikesh C. Yeolekar",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (A)",
     "className": "TY-AD1",
     "room": "ARVR",
     "batch": "Batch A",
@@ -2303,7 +2349,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-DAG",
     "facultyDbId": 15,
     "facultyName": "Mrs. Dhanashree A. Gore",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (B)",
     "className": "TY-AD1",
     "room": "Room 609A",
     "batch": "Batch B",
@@ -2321,7 +2367,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-PC",
     "facultyDbId": 21,
     "facultyName": "Mrs. Pooja Chavan",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (C)",
     "className": "TY-AD1",
     "room": "AI2",
     "batch": "Batch C",
@@ -2339,7 +2385,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ARA",
     "facultyDbId": 23,
     "facultyName": "Ms. Avani Anawardekar",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (A)",
     "className": "TY-AD1",
     "room": "CN1",
     "batch": "Batch A",
@@ -2357,7 +2403,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-SAK",
     "facultyDbId": 14,
     "facultyName": "Mrs. Shruti A. Kulkarni",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (B)",
     "className": "TY-AD1",
     "room": "AI1",
     "batch": "Batch B",
@@ -2375,7 +2421,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-RCY",
     "facultyDbId": 22,
     "facultyName": "Mr. Rishikesh C. Yeolekar",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (C)",
     "className": "TY-AD1",
     "room": "AI2",
     "batch": "Batch C",
@@ -2429,7 +2475,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ARA",
     "facultyDbId": 23,
     "facultyName": "Ms. Avani Anawardekar",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (B)",
     "className": "TY-AD1",
     "room": "IIOT",
     "batch": "Batch B",
@@ -2447,7 +2493,7 @@ const MASTER_TIMETABLE = [
     "facultyId": "FAC-ARA",
     "facultyDbId": 23,
     "facultyName": "Ms. Avani Anawardekar",
-    "classDiv": "TY AD1",
+    "classDiv": "TY AD1 (C)",
     "className": "TY-AD1",
     "room": "IIOT",
     "batch": "Batch C",
@@ -2557,19 +2603,20 @@ function findNextLecture(lectures) {
 // =============================================================================
 const MASTER_FACULTY_LIST = [
   {
-    "id": "ADM-101",
-    "dbId": 1,
-    "name": "Admin",
+    "id": "FAC-ANA",
+    "dbId": 7,
+    "name": "Mrs. Ashvini N. Ahirrao",
     "dept": "Artificial Intelligence and Data Science (AI&DS)",
-    "designation": "Associate Professor",
+    "designation": "Assistant Professor",
     "classes": [
       "SY AD1",
       "SY AD2",
       "SY AD3",
       "TY AD1"
     ],
-    "email": "admin@edunova.edu",
-    "maxHours": 16
+    "email": "ana@edunova.edu",
+    "maxHours": 16,
+    "role": "faculty"
   },
   {
     "id": "FAC-101",
@@ -2946,6 +2993,11 @@ function setActiveFacultyId(id) {
   }
   localStorage.setItem("edunova_active_faculty_id", authId);
   return true;
+}
+
+
+function getTeachingFacultyList() {
+  return MASTER_FACULTY_LIST.filter(f => f.role !== 'admin' && f.id !== 'ADM-101');
 }
 
 function getActiveFaculty() {
@@ -3336,17 +3388,18 @@ function clearPowerBIEmbedConfig() {
 // =============================================================================
 const DEPARTMENT_ROOMS = {
   classrooms: [
-    { id: "Room 101", name: "Room 101", type: "Classroom", capacity: 70, amenities: "Smart Projector • Audio System" },
-    { id: "Room 103", name: "Room 103", type: "Classroom", capacity: 75, amenities: "Interactive Whiteboard • Tiered Seating" },
-    { id: "Room 104", name: "Room 104", type: "Classroom", capacity: 80, amenities: "Dual Display • Air Conditioned" }
+    { id: "Room 102", name: "Room 102", type: "Classroom" },
+    { id: "Room 103", name: "Room 103", type: "Classroom" },
+    { id: "Room 104", name: "Room 104", type: "Classroom" }
   ],
   laboratories: [
-    { id: "Lab 609A", name: "Lab 609A", type: "Laboratory", capacity: 35, amenities: "35 High-End Workstations • Linux & Cloud Tools" },
-    { id: "Lab 609B", name: "Lab 609B", type: "Laboratory", capacity: 35, amenities: "35 Systems • AI & Data Analytics Terminals" },
-    { id: "Lab 607", name: "Lab 607", type: "Laboratory", capacity: 30, amenities: "30 Core i7 Terminals • Database & Security Suites" },
-    { id: "Lab 608", name: "Lab 608", type: "Laboratory", capacity: 30, amenities: "30 Terminals • Systems Programming & OS Kernel Lab" },
-    { id: "Lab 614", name: "Lab 614", type: "Laboratory", capacity: 32, amenities: "32 Workstations • Software Engineering & Testing Lab" },
-    { id: "Lab 605", name: "Lab 605", type: "Laboratory", capacity: 28, amenities: "28 Workstations • Networking & Hardware Lab" }
+    { id: "Lab 609A", name: "Lab 609A", type: "Laboratory" },
+    { id: "Lab 609B", name: "Lab 609B", type: "Laboratory" },
+    { id: "AI1", name: "AI1", type: "Lab 607 Sub-lab (AI1)" },
+    { id: "AI2", name: "AI2", type: "Lab 607 Sub-lab (AI2)" },
+    { id: "CN1", name: "CN1", type: "Lab 607 Sub-lab (CN1)" },
+    { id: "ARVR", name: "ARVR", type: "Lab 607 Sub-lab (ARVR)" },
+    { id: "IIOT", name: "IIOT", type: "Lab 607 Sub-lab (IIOT)" }
   ]
 };
 
@@ -3364,15 +3417,33 @@ const ACADEMIC_PERIODS = [
   { period: 8, startTime: "16:15", endTime: "17:15", label: "04:15 PM – 05:15 PM" }
 ];
 
-// Check if a room is occupied on a day and time interval
+// Check if a room is occupied on a day and time interval with strict overlap & conflict detection
 function getRoomOccupancy(roomId, day, startTime, endTime) {
-  const daySlots = MASTER_TIMETABLE.filter(s => s.day === day && s.room === roomId);
-  const occupiedSlot = daySlots.find(s => {
-    return !(s.endTime <= startTime || s.startTime >= endTime);
+  const target = String(roomId || '').trim().toLowerCase();
+  const daySlots = MASTER_TIMETABLE.filter(s => {
+    if (s.day !== day) return false;
+    const sRoom = String(s.room || '').trim().toLowerCase();
+    return sRoom === target ||
+      sRoom.replace(/^room\s*/, '') === target.replace(/^room\s*/, '') ||
+      sRoom.replace(/^lab\s*/, '') === target.replace(/^lab\s*/, '');
   });
+
+  // Strict interval overlap: start1 < end2 AND start2 < end1
+  const overlappingSessions = daySlots.filter(s => {
+    const sStart = s.startTime || s.start_time;
+    const sEnd = s.endTime || s.end_time;
+    if (!sStart || !sEnd) return false;
+    return (startTime < sEnd) && (sStart < endTime);
+  });
+
+  const isOccupied = overlappingSessions.length > 0;
+  const hasConflict = overlappingSessions.length > 1;
+
   return {
-    isOccupied: !!occupiedSlot,
-    session: occupiedSlot || null
+    isOccupied,
+    hasConflict,
+    session: overlappingSessions[0] || null,
+    sessions: overlappingSessions
   };
 }
 
@@ -3869,11 +3940,15 @@ function getSyllabusProgress(courseKey, lectureType) {
     const store = rawAll ? JSON.parse(rawAll) : {};
 
     if (!store[courseKey] || Array.isArray(store[courseKey]) || !store[courseKey].Theory) {
-      // Determine template based on subject name
+      // Determine template based on authentic subject records
       const [subject] = courseKey.split("___");
       let template = DEFAULT_SYLLABUS_TEMPLATES[subject];
+      if (!template && (subject.includes("Operating System") || subject.includes("OS"))) {
+        template = DEFAULT_SYLLABUS_TEMPLATES["Operating Systems"];
+      }
       if (!template) {
-        template = generateGenericSyllabus(subject);
+        // Genuine empty state: do not fabricate generic topics or percentages
+        template = { Theory: [], "Practical/Lab": [] };
       }
 
       // Deep clone to guarantee complete division isolation
@@ -4681,6 +4756,8 @@ async function syncTimetableFromAPI() {
       if (Array.isArray(facData) && facData.length > 0) {
         MASTER_FACULTY_LIST.length = 0;
         facData.forEach(f => {
+          // Exclude pure administrative accounts (e.g. ADM-101) from ordinary teaching faculty roster
+          if (f.faculty_id === 'ADM-101' || f.id === 1) return;
           MASTER_FACULTY_LIST.push({
             id: f.faculty_id || `FAC-${f.id}`,
             dbId: f.id,
@@ -4719,10 +4796,12 @@ async function syncTimetableFromAPI() {
             facultyDbId: item.faculty_id,
             faculty_id: item.faculty_id,
             facultyName: item.facultyName || item.faculty_name,
-            classDiv: (item.classDiv || item.class_name || "").replace("-", " "),
-            className: item.class_name || item.classDiv,
+            classDiv: item.display_class || item.classDiv || formatClassWithBatch(item.class_name || item.className || item.classDiv, item.batch, Boolean(item.is_lab)),
+            className: item.class_name || item.className || (item.classDiv || "").replace(/\s*\([A-Za-z0-9\s]+\)$/, "").trim(),
+            displayClass: item.display_class || item.classDiv || formatClassWithBatch(item.class_name || item.className || item.classDiv, item.batch, Boolean(item.is_lab)),
             room: item.room,
             batch: item.batch,
+            batchLetter: item.batch_letter || extractBatchLetter(item.batch),
             type: item.type || (item.is_lab ? "Lab Practical" : "Theory"),
             isLab: Boolean(item.is_lab)
           });
@@ -4753,8 +4832,14 @@ async function syncTimetableFromAPI() {
     if (typeof renderAdminTodayTimetable === 'function') renderAdminTodayTimetable();
     if (typeof renderClassroomsTable === 'function') renderClassroomsTable();
     if (typeof renderLabsTable === 'function') renderLabsTable();
-    if (typeof renderClassesAndDivisions === 'function') renderClassesAndDivisions();
     if (typeof renderAdminReplacementRequests === 'function') renderAdminReplacementRequests();
+    if (typeof populateWorkloadFacultyDropdown === 'function') populateWorkloadFacultyDropdown();
+    if (typeof renderSelectedFacultyWorkload === 'function') renderSelectedFacultyWorkload();
+    if (typeof renderCrossFacultyWorkloadComparison === 'function') renderCrossFacultyWorkloadComparison();
+    if (typeof renderRoomsAndLaboratoriesStatus === 'function') renderRoomsAndLaboratoriesStatus();
+    if (typeof renderPowerBISectionVisuals === 'function') renderPowerBISectionVisuals();
+    if (typeof renderReportsDepartmentOverview === 'function') renderReportsDepartmentOverview();
+    if (typeof updateAdminDashboardSummaryCards === 'function') updateAdminDashboardSummaryCards();
   } catch (err) {
     console.warn("Could not sync with live backend; using cached records:", err);
   }

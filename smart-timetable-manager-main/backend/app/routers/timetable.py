@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from ..database import get_db
 from ..models import Faculty, TimetableEntry
 from ..auth import current_user, require_admin, APIError
+from ..formatters import format_display_class, extract_batch_letter, normalize_batch
 
 router = Blueprint("timetable", __name__, url_prefix="/timetable")
 
@@ -12,18 +13,37 @@ def time_overlap(start1: str, end1: str, start2: str, end2: str) -> bool:
 
 
 def timetable_response(entry: TimetableEntry) -> dict:
+    disp_class = format_display_class(
+        entry.class_name,
+        entry.batch,
+        entry.is_lab,
+        getattr(entry, "session_type", "Practical" if entry.is_lab else "Theory")
+    )
+    b_letter = extract_batch_letter(entry.batch)
+    sess_type = getattr(entry, "session_type", "Practical" if entry.is_lab else "Theory")
     return {
         "id": entry.id,
         "day": entry.day,
         "start_time": entry.start_time,
         "end_time": entry.end_time,
+        "startTime": entry.start_time,
+        "endTime": entry.end_time,
+        "displayTime": f"{entry.start_time} - {entry.end_time}",
         "subject": entry.subject,
         "class_name": entry.class_name,
+        "classDiv": disp_class,
+        "display_class": disp_class,
         "room": entry.room,
         "faculty_id": entry.faculty_id,
         "faculty_name": entry.faculty.name if entry.faculty else "",
+        "facultyName": entry.faculty.name if entry.faculty else "",
         "batch": entry.batch,
-        "is_lab": entry.is_lab
+        "batch_letter": b_letter,
+        "is_lab": entry.is_lab,
+        "session_type": sess_type,
+        "type": "Lab Practical" if entry.is_lab else sess_type,
+        "academic_year": getattr(entry, "academic_year", None),
+        "semester": getattr(entry, "semester", None)
     }
 
 
@@ -37,6 +57,7 @@ def get_timetable(user: Faculty):
     day = request.args.get("day")
     class_name = request.args.get("class_name")
     faculty_id = request.args.get("faculty_id", type=int)
+    batch = request.args.get("batch")
     search = request.args.get("search")
 
     db = get_db()
@@ -56,7 +77,19 @@ def get_timetable(user: Faculty):
         query = query.filter(TimetableEntry.day == day)
 
     if class_name:
-        query = query.filter(TimetableEntry.class_name == class_name)
+        alt_class = class_name.replace(" ", "-") if " " in class_name else class_name.replace("-", " ")
+        query = query.filter((TimetableEntry.class_name == class_name) | (TimetableEntry.class_name == alt_class))
+
+    if batch:
+        b_letter = extract_batch_letter(batch)
+        if b_letter:
+            query = query.filter(
+                (TimetableEntry.batch == f"Batch {b_letter}") |
+                (TimetableEntry.batch == b_letter) |
+                (TimetableEntry.batch == batch)
+            )
+        else:
+            query = query.filter(TimetableEntry.batch == batch)
 
     entries = query.all()
 
@@ -69,6 +102,8 @@ def get_timetable(user: Faculty):
                 search_lower in entry.subject.lower()
                 or search_lower in entry.room.lower()
                 or (entry.faculty and search_lower in entry.faculty.name.lower())
+                or (entry.class_name and search_lower in entry.class_name.lower())
+                or (entry.batch and search_lower in entry.batch.lower())
             )
         ]
 
@@ -83,56 +118,11 @@ def get_timetable(user: Faculty):
 @current_user
 def detect_clashes(user: Faculty):
     db = get_db()
-    entries = db.query(TimetableEntry).all()
-    clashes = []
-
-    for i in range(len(entries)):
-        first = entries[i]
-        for j in range(i + 1, len(entries)):
-            second = entries[j]
-
-            if first.day != second.day:
-                continue
-
-            if not time_overlap(
-                first.start_time,
-                first.end_time,
-                second.start_time,
-                second.end_time
-            ):
-                continue
-
-            if first.faculty_id == second.faculty_id:
-                clashes.append({
-                    "type": "Faculty",
-                    "message": f"{first.faculty.name} has overlapping classes" if first.faculty else "Faculty has overlapping classes",
-                    "entry_1": first.id,
-                    "entry_2": second.id
-                })
-
-            if first.room == second.room:
-                clashes.append({
-                    "type": "Room",
-                    "message": f"{first.room} is double-booked",
-                    "entry_1": first.id,
-                    "entry_2": second.id
-                })
-
-            if first.class_name == second.class_name:
-                # Batches can run simultaneously in different rooms
-                if not first.batch or not second.batch or first.batch == second.batch:
-                    clashes.append({
-                        "type": "Class",
-                        "message": f"{first.class_name} has overlapping classes" if not first.batch else f"{first.class_name} ({first.batch}) has overlapping classes",
-                        "entry_1": first.id,
-                        "entry_2": second.id
-                    })
-
-    return jsonify({
-        "total_clashes": len(clashes),
-        "status": "PASS" if len(clashes) == 0 else "CONFLICT",
-        "clashes": clashes
-    }), 200
+    from ..services.timetable_scanner import scan_database_timetable
+    report = scan_database_timetable(db)
+    report["total_clashes"] = report["total_conflicts"]
+    report["clashes"] = report["conflicts"]
+    return jsonify(report), 200
 
 
 # ==========================================================
@@ -182,6 +172,13 @@ def create_timetable(admin: Faculty):
     room = data.get("room", "")
     class_name = data.get("class_name", "")
     subject = data.get("subject", "")
+    is_lab = bool(data.get("is_lab", False)) or data.get("session_type") == "Practical"
+    session_type = "Practical" if is_lab else data.get("session_type", "Theory")
+
+    # Batch normalization
+    raw_batch = data.get("batch")
+    b_letter = extract_batch_letter(raw_batch)
+    batch_val = normalize_batch(raw_batch) if b_letter else None
 
     existing = db.query(TimetableEntry).filter(
         TimetableEntry.day == day
@@ -199,8 +196,9 @@ def create_timetable(admin: Faculty):
             conflicts.append("Room is already occupied")
 
         if entry.class_name == class_name:
-            batch_req = data.get("batch")
-            if not batch_req or not entry.batch or batch_req == entry.batch:
+            entry_b_letter = extract_batch_letter(entry.batch)
+            # If either session is a full class (theory / no batch) or same batch -> conflict
+            if not b_letter or not entry_b_letter or b_letter == entry_b_letter:
                 conflicts.append("Class already has another lecture")
 
     if conflicts:
@@ -220,8 +218,11 @@ def create_timetable(admin: Faculty):
         class_name=class_name,
         room=room,
         faculty_id=faculty_id,
-        batch=data.get("batch"),
-        is_lab=bool(data.get("is_lab", False))
+        batch=batch_val,
+        is_lab=is_lab,
+        session_type=session_type,
+        academic_year=data.get("academic_year"),
+        semester=data.get("semester")
     )
 
     db.add(timetable)
@@ -229,6 +230,94 @@ def create_timetable(admin: Faculty):
     db.refresh(timetable)
 
     return jsonify(timetable_response(timetable)), 200
+
+
+# ==========================================================
+# UPDATE TIMETABLE ENTRY (ADMIN ONLY)
+# ==========================================================
+
+@router.route("/<int:entry_id>", methods=["PUT"])
+@require_admin
+def update_timetable(entry_id: int, admin: Faculty):
+    data = request.get_json(silent=True) or {}
+    db = get_db()
+
+    entry = db.get(TimetableEntry, entry_id)
+    if not entry:
+        raise APIError("Timetable entry not found", 404)
+
+    day = data.get("day", entry.day)
+    start_time = data.get("start_time", entry.start_time)
+    end_time = data.get("end_time", entry.end_time)
+    room = data.get("room", entry.room)
+    class_name = data.get("class_name", entry.class_name)
+    subject = data.get("subject", entry.subject)
+    faculty_id = data.get("faculty_id", entry.faculty_id)
+
+    faculty = db.get(Faculty, faculty_id)
+    if not faculty:
+        raise APIError("Faculty not found", 404)
+
+    is_lab = bool(data.get("is_lab", entry.is_lab)) if "is_lab" in data else entry.is_lab
+    session_type = data.get("session_type", entry.session_type)
+    if is_lab and session_type == "Theory":
+        session_type = "Practical"
+
+    # Batch normalization
+    raw_batch = data.get("batch") if "batch" in data else entry.batch
+    b_letter = extract_batch_letter(raw_batch)
+    batch_val = normalize_batch(raw_batch) if b_letter else None
+
+    # Check conflicts against other entries excluding this one
+    existing = db.query(TimetableEntry).filter(
+        TimetableEntry.day == day,
+        TimetableEntry.id != entry_id
+    ).all()
+
+    conflicts = []
+    for other in existing:
+        if not time_overlap(start_time, end_time, other.start_time, other.end_time):
+            continue
+
+        if other.faculty_id == faculty_id:
+            conflicts.append("Faculty is already scheduled")
+
+        if other.room == room:
+            conflicts.append("Room is already occupied")
+
+        if other.class_name == class_name:
+            other_b_letter = extract_batch_letter(other.batch)
+            if not b_letter or not other_b_letter or b_letter == other_b_letter:
+                conflicts.append("Class already has another lecture")
+
+    if conflicts:
+        raise APIError(
+            {
+                "message": "Timetable conflict detected",
+                "conflicts": list(set(conflicts))
+            },
+            409
+        )
+
+    entry.day = day
+    entry.start_time = start_time
+    entry.end_time = end_time
+    entry.room = room
+    entry.class_name = class_name
+    entry.subject = subject
+    entry.faculty_id = faculty_id
+    entry.batch = batch_val
+    entry.is_lab = is_lab
+    entry.session_type = session_type
+    if "academic_year" in data:
+        entry.academic_year = data["academic_year"]
+    if "semester" in data:
+        entry.semester = data["semester"]
+
+    db.commit()
+    db.refresh(entry)
+
+    return jsonify(timetable_response(entry)), 200
 
 
 # ==========================================================

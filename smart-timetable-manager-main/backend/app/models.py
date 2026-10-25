@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timezone
 
 from sqlalchemy import (
@@ -6,7 +7,8 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
-    Text
+    Text,
+    UniqueConstraint
 )
 
 from sqlalchemy.orm import (
@@ -16,6 +18,7 @@ from sqlalchemy.orm import (
 )
 
 from .database import Base
+from .formatters import format_display_class, extract_batch_letter
 
 # ==========================================================
 # CLASS MODEL TABLE
@@ -364,6 +367,14 @@ class TimetableEntry(Base):
         back_populates="timetable"
     )
 
+    @property
+    def display_class(self) -> str:
+        return format_display_class(self.class_name, self.batch, self.is_lab, self.session_type)
+
+    @property
+    def batch_letter(self) -> str | None:
+        return extract_batch_letter(self.batch)
+
 
 # ==========================================================
 # ROOM TABLE
@@ -539,9 +550,9 @@ class AdminNotification(Base):
         index=True
     )
 
-    conflict_id: Mapped[int] = mapped_column(
+    conflict_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("conflicts.id"),
-        nullable=False
+        nullable=True
     )
 
     title: Mapped[str] = mapped_column(
@@ -559,9 +570,123 @@ class AdminNotification(Base):
         default=False
     )
 
+    publisher_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("faculty.id"),
+        nullable=True
+    )
+
+    department: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        default="AI&DS"
+    )
+
+    recipient_scope: Mapped[str] = mapped_column(
+        String(50),
+        default="all"
+    )
+
+    target_faculty_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("faculty.id"),
+        nullable=True
+    )
+
+    notification_code: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True,
+        index=True
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc)
     )
 
     conflict = relationship("Conflict", backref="notifications")
+    publisher = relationship("Faculty", foreign_keys=[publisher_id])
+
+
+class FacultyNotificationRead(Base):
+    __tablename__ = "faculty_notification_reads"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    faculty_id: Mapped[int] = mapped_column(
+        ForeignKey("faculty.id"),
+        nullable=False,
+        index=True
+    )
+
+    notification_id: Mapped[int] = mapped_column(
+        ForeignKey("admin_notifications.id"),
+        nullable=False,
+        index=True
+    )
+
+    read_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc)
+    )
+
+    __table_args__ = (
+        UniqueConstraint("faculty_id", "notification_id", name="uq_faculty_notification_read"),
+    )
+
+
+# ==========================================================
+# SYLLABUS TOPIC TABLE
+# ==========================================================
+
+class SyllabusTopic(Base):
+    __tablename__ = "syllabus_topics"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    subject_id: Mapped[int] = mapped_column(
+        ForeignKey("subjects.id"),
+        nullable=False
+    )
+
+    unit_number: Mapped[int] = mapped_column(
+        Integer,
+        default=1
+    )
+
+    unit_title: Mapped[str] = mapped_column(
+        String(200),
+        nullable=False
+    )
+
+    topic_name: Mapped[str] = mapped_column(
+        String(250),
+        nullable=False
+    )
+
+    planned_lectures: Mapped[int] = mapped_column(
+        Integer,
+        default=2
+    )
+
+    completed_lectures: Mapped[int] = mapped_column(
+        Integer,
+        default=0
+    )
+
+    target_date: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(50),
+        default="Pending"
+    )
+
+    subject = relationship("Subject", backref="topics")

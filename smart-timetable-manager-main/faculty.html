@@ -356,17 +356,8 @@
                 </button>
               </div>
 
-              <div class="space-y-2.5 text-xs">
-                <div class="p-3 bg-cream-50/70 rounded-xl border border-cream-200">
-                  <span class="text-[10px] font-bold text-lilac-800 uppercase">HOD Notice</span>
-                  <p class="font-bold text-slate-800 mt-0.5">Department Review Meeting</p>
-                  <p class="text-[11px] text-slate-500 mt-1">Wednesday 04:00 PM in Conference Room 102.</p>
-                </div>
-                <div class="p-3 bg-cream-50/70 rounded-xl border border-cream-200">
-                  <span class="text-[10px] font-bold text-lilac-800 uppercase">Exam Cell</span>
-                  <p class="font-bold text-slate-800 mt-0.5">Defaulter Lists by Friday</p>
-                  <p class="text-[11px] text-slate-500 mt-1">Please compile students with attendance &lt; 75%.</p>
-                </div>
+              <div class="space-y-2.5 text-xs" id="faculty-recent-notifications-preview">
+                <!-- Dynamically populated from /api/notifications -->
               </div>
             </div>
 
@@ -406,17 +397,116 @@
         <div class="bg-white rounded-2xl border border-lilac-200 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-              <h2 class="text-base font-bold text-slate-900">Timetable Conflict Detection & Replacement</h2>
+              <span class="w-2.5 h-2.5 rounded-full bg-lilac-600"></span>
+              <h2 class="text-base font-bold text-slate-900">Master Timetable Conflict Audit & Inspection</h2>
             </div>
-            <p class="text-xs text-slate-500 mt-0.5">Detect overlapping lectures, room double-bookings, and division clashes — then find suitable replacement faculty</p>
+            <p class="text-xs text-slate-500 mt-0.5">Audit master timetable sessions by day, preview uploaded files or testing samples, and resolve multi-resource conflicts.</p>
           </div>
           <div class="flex items-center gap-2">
-            <button type="button" onclick="runConflictDetection('master')" class="px-3 py-2 bg-lilac-600 hover:bg-lilac-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer">
-              <i class="fa-solid fa-magnifying-glass-chart"></i>
-              <span>Scan Master Timetable</span>
+            <span id="scan-source-badge" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-lilac-100 text-lilac-800 border border-lilac-200 hidden sm:flex items-center gap-1.5">
+              <i class="fa-solid fa-database text-lilac-600"></i>
+              <span>Live Database Master</span>
+            </span>
+            <button type="button" id="btn-faculty-scan-master" onclick="runConflictDetection('master')" class="px-3 py-2 bg-lilac-600 hover:bg-lilac-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer">
+              <i id="icon-faculty-scan-master" class="fa-solid fa-magnifying-glass-chart"></i>
+              <span id="text-faculty-scan-master">Scan Master Timetable</span>
             </button>
           </div>
+        </div>
+
+        <!-- Controls Card: Upload, Sample & Day Selection -->
+        <div class="bg-white rounded-2xl border border-lilac-200 p-5 shadow-sm space-y-4">
+          <div class="border-b border-lilac-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-lilac-600"></i>
+                <span>Audit Workflow Controls</span>
+              </h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">Load verification sample, upload a schedule file (.csv, .xlsx), or audit live database sessions.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" id="btn-load-sample" onclick="loadSampleTimetable()" class="px-3 py-1.5 bg-lilac-100 hover:bg-lilac-200 text-lilac-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-lilac-300">
+                <i class="fa-solid fa-flask text-lilac-600"></i>
+                <span>Load Sample Timetable</span>
+              </button>
+              <label class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-slate-300">
+                <i class="fa-solid fa-file-arrow-up text-slate-600"></i>
+                <span>Upload Schedule (.csv, .xlsx)</span>
+                <input type="file" id="faculty-timetable-file-input" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleFacultyFileUpload(event)">
+              </label>
+              <button type="button" id="btn-use-live-db" onclick="useLiveDatabaseSchedule()" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-slate-200">
+                <i class="fa-solid fa-rotate text-slate-500"></i>
+                <span>Use Live Database</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Day Selection & Execution Bar -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end pt-1">
+            <div class="sm:col-span-2">
+              <label for="scan-day-select" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                <i class="fa-solid fa-calendar-day mr-1 text-lilac-600"></i>Select Day to Scan
+              </label>
+              <select id="scan-day-select" class="w-full px-3.5 py-2.5 rounded-xl border border-lilac-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-lilac-400">
+                <option value="Monday" selected>Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="All Days">All Days (Complete Master Timetable)</option>
+              </select>
+            </div>
+            <div>
+              <button type="button" id="btn-scan-selected-day" onclick="runSelectedDayScan()" class="w-full px-4 py-2.5 bg-lilac-600 hover:bg-lilac-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer">
+                <i id="icon-scan-selected-day" class="fa-solid fa-magnifying-glass-chart"></i>
+                <span id="text-scan-selected-day">Scan Selected Day</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timetable Preview Container (Visible when sample or uploaded file is active) -->
+        <div id="timetable-preview-container" class="hidden bg-white rounded-2xl border border-lilac-200 p-5 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-lilac-100 pb-3">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-table text-lilac-600"></i>
+              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Timetable Preview Before Scanning</h3>
+              <span id="preview-source-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-lilac-100 text-lilac-800">Sample Timetable</span>
+              <span id="preview-row-count-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">7 Sessions</span>
+            </div>
+            <button type="button" onclick="clearSchedulePreview()" class="text-xs text-slate-400 hover:text-slate-700 font-semibold cursor-pointer flex items-center gap-1 self-start sm:self-auto">
+              <i class="fa-solid fa-xmark"></i> Dismiss Preview
+            </button>
+          </div>
+
+          <div id="preview-validation-errors" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+            <!-- Populated with validation messages if file had invalid fields -->
+          </div>
+
+          <!-- Preview Table Scroll Container -->
+          <div class="overflow-x-auto rounded-xl border border-lilac-100 max-h-64 overflow-y-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-lilac-50 text-slate-700 text-[11px] font-bold uppercase tracking-wider border-b border-lilac-200 sticky top-0">
+                <tr>
+                  <th class="py-2.5 px-3">#</th>
+                  <th class="py-2.5 px-3">Day</th>
+                  <th class="py-2.5 px-3">Time Slot</th>
+                  <th class="py-2.5 px-3">Subject</th>
+                  <th class="py-2.5 px-3">Faculty ID</th>
+                  <th class="py-2.5 px-3">Class / Batch</th>
+                  <th class="py-2.5 px-3">Type</th>
+                  <th class="py-2.5 px-3">Room / Lab</th>
+                </tr>
+              </thead>
+              <tbody id="preview-table-body" class="divide-y divide-lilac-100 bg-white text-slate-700 font-medium">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+          <p class="text-[11px] text-slate-500 italic">
+            Preview loaded in memory only. SQLite database records are unaffected. Select a day above and click "Scan Selected Day" to run conflict audit.
+          </p>
         </div>
 
         <!-- Conflict Summary KPIs -->
@@ -427,21 +517,34 @@
         <!-- Detected Conflicts List -->
         <div class="bg-white rounded-2xl border border-lilac-200 p-5 shadow-sm space-y-4">
           <div class="flex items-center justify-between border-b border-lilac-100 pb-3">
-            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <i class="fa-solid fa-list-check text-lilac-600"></i>
-              <span>Detected Conflicts</span>
-            </h3>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-lilac-600"></i>
+                <span>Detected Conflicts</span>
+              </h3>
+              <span id="conflict-day-indicator-badge" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700">Monday</span>
+            </div>
             <span id="conflict-total-count-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-lilac-100 text-lilac-800">0 Conflicts</span>
           </div>
 
           <div id="conflict-list-container" class="space-y-3">
-            <div class="p-8 text-center bg-lilac-50/50 rounded-xl border border-dashed border-lilac-200">
-              <div class="w-10 h-10 rounded-full bg-lilac-100 text-lilac-600 flex items-center justify-center mx-auto mb-2 text-sm">
-                <i class="fa-solid fa-shield-halved"></i>
+            <!-- Initial clean ready state -->
+            <div class="p-8 text-center bg-lilac-50/40 rounded-xl border border-dashed border-lilac-200 space-y-2">
+              <div class="w-10 h-10 rounded-full bg-lilac-100 text-lilac-600 flex items-center justify-center mx-auto text-sm">
+                <i class="fa-solid fa-magnifying-glass-chart"></i>
               </div>
-              <h4 class="text-xs font-bold text-slate-800">No Conflicts Detected Yet</h4>
-              <p class="text-[11px] text-slate-500 mt-1">Click "Scan Master Timetable" above to detect scheduling conflicts.</p>
+              <h4 class="text-xs font-bold text-slate-800">Master Timetable Audit Ready</h4>
+              <p class="text-[11px] text-slate-500 max-w-md mx-auto">
+                Select a day or click <strong>Load Sample Timetable</strong> to test with 7 verification sessions on Monday, then click <strong>Scan Selected Day</strong>.
+              </p>
             </div>
+          </div>
+
+          <!-- Pagination / Show More Bar -->
+          <div id="conflict-pagination-bar" class="hidden pt-2 text-center border-t border-lilac-100">
+            <button type="button" id="btn-toggle-show-more" onclick="toggleShowMoreConflicts()" class="px-4 py-2 rounded-xl bg-lilac-100 hover:bg-lilac-200 text-lilac-800 text-xs font-bold transition-all cursor-pointer">
+              Show More Conflicts
+            </button>
           </div>
         </div>
 
@@ -1157,6 +1260,9 @@
       if (sectionId === 'timetable') {
         renderFacultyFullTimetable();
       }
+      if (sectionId === 'conflicts') {
+        // Do not auto-scan on tab switch; wait for user to click Scan Selected Day
+      }
       if (sectionId === 'syllabus') {
         renderFacultySyllabusModule();
       }
@@ -1445,7 +1551,7 @@
       }
 
       // 2. Unread notifications
-      const unreadCount = getUnreadNotificationCount(activeId);
+      const unreadCount = (cachedDbUnreadNotificationsCount !== null) ? cachedDbUnreadNotificationsCount : getUnreadNotificationCount(activeId);
       const navNotifBadge = document.getElementById('fnav-notif-badge');
       const headerNotifBadge = document.getElementById('faculty-header-notif-badge');
 
@@ -1521,14 +1627,14 @@
 
         html += `
           <div class="p-3.5 rounded-xl border ${cardBg} flex items-center justify-between gap-3 text-xs transition-all">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
               <div class="w-8 h-8 rounded-lg bg-lilac-100 text-lilac-800 font-bold flex items-center justify-center text-xs shrink-0">
                 <i class="fa-solid ${l.type === 'Lab Practical' ? 'fa-flask' : 'fa-book-open'}"></i>
               </div>
-              <div>
-                <h4 class="font-bold text-slate-900 ${status === 'Completed' ? 'line-through text-slate-400' : ''}">${l.subject}</h4>
-                <p class="text-[11px] text-slate-600 mt-0.5">
-                  <span class="font-semibold text-slate-800">${l.displayTime}</span> &bull; ${l.classDiv} &bull; <strong class="text-lilac-800">${l.room}</strong>
+              <div class="min-w-0 flex-1">
+                <h4 class="font-bold text-slate-900 break-words whitespace-normal leading-snug ${status === 'Completed' ? 'line-through text-slate-500 decoration-slate-400 decoration-1' : ''}">${l.subject}</h4>
+                <p class="text-[11px] text-slate-600 mt-0.5 flex flex-wrap items-center gap-1.5">
+                  <span class="font-semibold text-slate-800">${l.displayTime}</span> &bull; <span>${l.classDiv}</span> &bull; <strong class="text-lilac-800">${l.room}</strong>
                 </p>
               </div>
             </div>
@@ -1582,11 +1688,11 @@
           <div class="w-12 h-12 rounded-2xl ${isOngoing ? 'bg-emerald-600' : 'bg-lilac-600'} text-white flex items-center justify-center text-xl shrink-0 shadow-sm">
             <i class="fa-solid ${isOngoing ? 'fa-play' : 'fa-chalkboard-user'}"></i>
           </div>
-          <div class="space-y-1">
+          <div class="space-y-1 min-w-0 flex-1">
             <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${isOngoing ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} uppercase tracking-wider">
               ${isOngoing ? 'Lecture in Progress' : 'Next Lecture Up'}
             </span>
-            <h3 class="text-sm font-bold text-slate-900">${l.subject}</h3>
+            <h3 class="text-sm font-bold text-slate-900 break-words whitespace-normal leading-snug">${l.subject}</h3>
             <p class="text-xs text-slate-600">
               <i class="fa-regular fa-clock mr-1 text-lilac-600"></i>${l.displayTime} &bull; <strong>${l.room}</strong>
             </p>
@@ -2083,165 +2189,692 @@
     }
 
     // =========================================================================
-    // NOTIFICATIONS MODULE LOGIC
+    // HTML ESCAPE & UTILITY HELPERS
     // =========================================================================
-    function renderFacultyNotifications() {
-      const container = document.getElementById('faculty-notifications-container');
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function closeReplacementPanel() {
+      const panel = document.getElementById('conflict-replacement-panel');
+      if (panel) panel.classList.add('hidden');
+    }
+
+    // =========================================================================
+    // 1. MASTER TIMETABLE SCAN & CONFLICT ENGINE (FOR FACULTY)
+    // =========================================================================
+    let activePreviewEntries = null;
+    let activePreviewSource = 'live'; // 'live', 'sample', 'upload'
+    let activeConflictCards = [];
+    let isShowingAllConflicts = false;
+    let isScanningDay = false;
+    let lastDayScanReport = null;
+
+    const SAMPLE_TIMETABLE_DATA = [
+      { day: "Monday", start_time: "09:00", end_time: "10:00", subject: "Python Programming", faculty_id: "FAC-001", class_name: "SY AD1", session_type: "Theory", room: "Room 102" },
+      { day: "Monday", start_time: "09:30", end_time: "10:30", subject: "Database Systems", faculty_id: "FAC-001", class_name: "SY AD2", session_type: "Theory", room: "Room 103" },
+      { day: "Monday", start_time: "11:00", end_time: "12:00", subject: "Machine Learning", faculty_id: "FAC-003", class_name: "TY AD1", session_type: "Theory", room: "Room 102" },
+      { day: "Monday", start_time: "11:30", end_time: "12:30", subject: "Artificial Intelligence", faculty_id: "FAC-004", class_name: "TY AD1", session_type: "Theory", room: "Room 103" },
+      { day: "Monday", start_time: "13:00", end_time: "15:00", subject: "Python Practical", faculty_id: "FAC-005", class_name: "SY AD1 (A)", session_type: "Practical", room: "Lab 609A" },
+      { day: "Monday", start_time: "13:00", end_time: "15:00", subject: "Python Practical", faculty_id: "FAC-006", class_name: "SY AD1 (B)", session_type: "Practical", room: "Lab 609B" },
+      { day: "Monday", start_time: "13:00", end_time: "15:00", subject: "Python Practical", faculty_id: "FAC-007", class_name: "SY AD1 (C)", session_type: "Practical", room: "Lab 607 AI1" }
+    ];
+
+    async function loadSampleTimetable() {
+      try {
+        let entries = SAMPLE_TIMETABLE_DATA;
+        const token = localStorage.getItem('edunova_token');
+        const res = await fetch('/api/timetable/sample', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.entries && data.entries.length) {
+            entries = data.entries;
+          }
+        }
+        activePreviewEntries = entries;
+        activePreviewSource = 'sample';
+
+        const daySelect = document.getElementById('scan-day-select');
+        if (daySelect) daySelect.value = 'Monday';
+
+        const srcBadge = document.getElementById('scan-source-badge');
+        if (srcBadge) {
+          srcBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-lilac-100 text-lilac-800 border border-lilac-300';
+          srcBadge.innerHTML = '<i class="fa-solid fa-flask mr-1 text-lilac-600"></i>Sample Timetable Preview';
+        }
+
+        renderSchedulePreviewTable(entries, 'Sample Verification Schedule (7 Sessions)');
+        if (typeof showNotification === 'function') {
+          showNotification("Loaded 7 sample sessions into preview. Select day and click 'Scan Selected Day'.", "info");
+        }
+      } catch (err) {
+        console.error("Failed to load sample timetable:", err);
+        activePreviewEntries = SAMPLE_TIMETABLE_DATA;
+        activePreviewSource = 'sample';
+        renderSchedulePreviewTable(SAMPLE_TIMETABLE_DATA, 'Sample Verification Schedule (7 Sessions)');
+      }
+    }
+
+    async function handleFacultyFileUpload(event) {
+      const fileInput = event.target;
+      if (!fileInput || !fileInput.files || fileInput.files.length === 0) return;
+      const file = fileInput.files[0];
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const token = localStorage.getItem('edunova_token');
+        const res = await fetch('/api/timetable/parse', {
+          method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          body: formData
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || `Upload parsing failed with status ${res.status}`);
+        }
+
+        const report = await res.json();
+        if (!report.entries || report.entries.length === 0) {
+          throw new Error("No timetable records found in the uploaded file.");
+        }
+
+        activePreviewEntries = report.entries;
+        activePreviewSource = 'upload';
+
+        const daySelect = document.getElementById('scan-day-select');
+        if (daySelect && report.days && report.days.length > 0) {
+          if (!report.days.includes(daySelect.value) && daySelect.value !== 'All Days') {
+            daySelect.value = report.days[0];
+          }
+        }
+
+        const srcBadge = document.getElementById('scan-source-badge');
+        if (srcBadge) {
+          srcBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300';
+          srcBadge.innerHTML = `<i class="fa-solid fa-file-csv mr-1 text-amber-600"></i>File: ${escapeHtml(file.name)} (${report.entries.length} Sessions)`;
+        }
+
+        renderSchedulePreviewTable(report.entries, `File: ${file.name} (${report.entries.length} Sessions)`, report.validation_errors);
+        if (typeof showNotification === 'function') {
+          showNotification(`Parsed ${report.entries.length} entries from ${file.name}. Ready to scan.`, "success");
+        }
+      } catch (err) {
+        console.error("File upload parse error:", err);
+        alert(`Timetable File Error: ${err.message}`);
+      } finally {
+        fileInput.value = '';
+      }
+    }
+
+    function useLiveDatabaseSchedule() {
+      activePreviewEntries = null;
+      activePreviewSource = 'live';
+      clearSchedulePreview();
+      const srcBadge = document.getElementById('scan-source-badge');
+      if (srcBadge) {
+        srcBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-lilac-100 text-lilac-800 border border-lilac-200';
+        srcBadge.innerHTML = '<i class="fa-solid fa-database mr-1"></i>Live Database Master';
+      }
+      if (typeof showNotification === 'function') {
+        showNotification("Switched to Live SQLite Database Timetable.", "info");
+      }
+    }
+
+    function clearSchedulePreview() {
+      const container = document.getElementById('timetable-preview-container');
+      if (container) container.classList.add('hidden');
+    }
+
+    function renderSchedulePreviewTable(entries, title, validationErrors = []) {
+      const container = document.getElementById('timetable-preview-container');
+      const tbody = document.getElementById('preview-table-body');
+      const titleBadge = document.getElementById('preview-source-badge');
+      const countBadge = document.getElementById('preview-row-count-badge');
+      const errBox = document.getElementById('preview-validation-errors');
+
+      if (!container || !tbody) return;
+
+      if (titleBadge) titleBadge.textContent = title || 'Loaded Schedule';
+      if (countBadge) countBadge.textContent = `${entries.length} Sessions`;
+
+      if (errBox) {
+        if (validationErrors && validationErrors.length > 0) {
+          errBox.classList.remove('hidden');
+          errBox.innerHTML = `
+            <div class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation text-amber-600"></i>${validationErrors.length} Validation Warning(s):</div>
+            <ul class="list-disc list-inside space-y-0.5 mt-1 text-[11px]">
+              ${validationErrors.map(e => `<li>Row ${e.row || '?'}: ${escapeHtml(e.message || '')}</li>`).join('')}
+            </ul>
+          `;
+        } else {
+          errBox.classList.add('hidden');
+          errBox.innerHTML = '';
+        }
+      }
+
+      tbody.innerHTML = entries.map((e, idx) => `
+        <tr class="hover:bg-lilac-50/40 transition-colors">
+          <td class="py-2 px-3 text-slate-400 font-mono text-[10px]">${idx + 1}</td>
+          <td class="py-2 px-3 font-bold text-slate-800">${escapeHtml(e.day || '')}</td>
+          <td class="py-2 px-3 text-slate-600 font-mono text-[11px]">${escapeHtml(e.time_slot || (e.start_time + ' - ' + e.end_time))}</td>
+          <td class="py-2 px-3 font-semibold text-slate-900">${escapeHtml(e.subject || '')}</td>
+          <td class="py-2 px-3 font-mono text-lilac-800">${escapeHtml(e.faculty_id || e.faculty || '')}</td>
+          <td class="py-2 px-3 font-bold text-slate-800">${escapeHtml(e.class_name || '')}</td>
+          <td class="py-2 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${e.session_type === 'Practical' || e.is_lab ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-700'}">
+              ${escapeHtml(e.session_type || (e.is_lab ? 'Practical' : 'Theory'))}
+            </span>
+          </td>
+          <td class="py-2 px-3 font-medium text-slate-700">${escapeHtml(e.room || '')}</td>
+        </tr>
+      `).join('');
+
+      container.classList.remove('hidden');
+    }
+
+    async function runSelectedDayScan() {
+      if (isScanningDay) return;
+      isScanningDay = true;
+
+      const daySelect = document.getElementById('scan-day-select');
+      const selectedDay = daySelect ? daySelect.value : 'Monday';
+
+      const btn = document.getElementById('btn-scan-selected-day');
+      const icon = document.getElementById('icon-scan-selected-day');
+      const text = document.getElementById('text-scan-selected-day');
+      const container = document.getElementById('conflict-list-container');
+      const dayIndicator = document.getElementById('conflict-day-indicator-badge');
+
+      if (dayIndicator) dayIndicator.textContent = selectedDay;
+
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-70', 'cursor-not-allowed');
+      }
+      if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+      if (text) text.textContent = `Auditing ${selectedDay}...`;
+
+      if (container) {
+        container.innerHTML = `
+          <div class="p-8 text-center bg-white rounded-2xl border border-lilac-200 space-y-3">
+            <div class="w-10 h-10 rounded-full bg-lilac-100 text-lilac-600 flex items-center justify-center mx-auto text-sm animate-spin">
+              <i class="fa-solid fa-circle-notch"></i>
+            </div>
+            <h4 class="text-xs font-bold text-slate-800">Auditing ${escapeHtml(selectedDay)} Timetable Sessions...</h4>
+            <p class="text-[11px] text-slate-500">Checking faculty overlaps, room double-bookings, and practical batch assignments.</p>
+          </div>
+        `;
+      }
+
+      try {
+        const token = localStorage.getItem('edunova_token');
+        let report;
+
+        if (activePreviewEntries && activePreviewEntries.length > 0) {
+          const res = await fetch('/api/timetable/scan', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify({
+              entries: activePreviewEntries,
+              day: selectedDay === 'All Days' ? 'all' : selectedDay
+            })
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.detail || `Scan request failed with HTTP status ${res.status}`);
+          }
+          report = await res.json();
+        } else {
+          const paramDay = selectedDay === 'All Days' ? 'all' : selectedDay;
+          const res = await fetch(`/api/timetable/scan?day=${encodeURIComponent(paramDay)}`, {
+            method: 'GET',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.detail || `Scan request failed with HTTP status ${res.status}`);
+          }
+          report = await res.json();
+        }
+
+        lastDayScanReport = report;
+        activeConflictCards = report.conflicts || [];
+        isShowingAllConflicts = false;
+        renderConflictScanResults(report);
+      } catch (err) {
+        console.error("Day Timetable Scan Error:", err);
+        if (container) {
+          container.innerHTML = `
+            <div class="p-6 text-center bg-rose-50 rounded-2xl border border-rose-200 space-y-2 text-rose-800">
+              <i class="fa-solid fa-triangle-exclamation text-xl text-rose-600"></i>
+              <h4 class="text-xs font-bold">Timetable Audit Could Not Be Completed</h4>
+              <p class="text-[11px] text-rose-700">${escapeHtml(err.message || 'Unable to complete the scan.')}</p>
+              <button type="button" onclick="runSelectedDayScan()" class="mt-2 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold cursor-pointer">
+                Retry Scan
+              </button>
+            </div>
+          `;
+        }
+      } finally {
+        isScanningDay = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-70', 'cursor-not-allowed');
+        }
+        if (icon) icon.className = 'fa-solid fa-magnifying-glass-chart';
+        if (text) text.textContent = 'Scan Selected Day';
+      }
+    }
+
+    function runConflictDetection(scope = 'master') {
+      runSelectedDayScan();
+    }
+
+    function toggleShowMoreConflicts() {
+      isShowingAllConflicts = !isShowingAllConflicts;
+      renderConflictCardsList();
+    }
+
+    function renderConflictScanResults(report) {
+      const kpiContainer = document.getElementById('conflict-summary-kpis');
+      const badge = document.getElementById('conflict-total-count-badge');
+      const navBadge = document.getElementById('fnav-conflict-badge');
+
+      const totalSessions = report.total_sessions_checked || 0;
+      const totalConflicts = report.total_conflicts || 0;
+      const facultyClashes = report.faculty_clashes || 0;
+      const roomClashes = report.room_clashes || 0;
+      const classClashes = report.class_clashes || 0;
+      const targetDay = report.day_filter || 'Selected Schedule';
+
+      if (kpiContainer) {
+        kpiContainer.innerHTML = `
+          <div class="bg-white rounded-2xl border border-lilac-200 p-4 shadow-sm">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sessions Audited</span>
+            <div class="flex items-baseline justify-between mt-1">
+              <span class="text-2xl font-extrabold text-slate-900">${totalSessions}</span>
+              <span class="text-[11px] font-semibold text-lilac-700">${escapeHtml(targetDay)}</span>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl border ${totalConflicts === 0 ? 'border-emerald-200 bg-emerald-50/20' : 'border-rose-200 bg-rose-50/20'} p-4 shadow-sm">
+            <span class="text-[10px] font-bold ${totalConflicts === 0 ? 'text-emerald-700' : 'text-rose-700'} uppercase tracking-wider block">Unique Conflicting Pairs</span>
+            <div class="flex items-baseline justify-between mt-1">
+              <span class="text-2xl font-extrabold ${totalConflicts === 0 ? 'text-emerald-900' : 'text-rose-900'}">${totalConflicts}</span>
+              <span class="text-[11px] font-bold ${totalConflicts === 0 ? 'text-emerald-700' : 'text-rose-700'}">${totalConflicts === 0 ? 'Verified' : 'Action Required'}</span>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl border border-lilac-200 p-4 shadow-sm">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Faculty Clashes</span>
+            <div class="flex items-baseline justify-between mt-1">
+              <span class="text-2xl font-extrabold text-slate-900">${facultyClashes}</span>
+              <span class="text-[11px] font-medium text-slate-500">${facultyClashes === 0 ? 'Zero Overlaps' : 'Double-Booked'}</span>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl border border-lilac-200 p-4 shadow-sm">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Room / Class Clashes</span>
+            <div class="flex items-baseline justify-between mt-1">
+              <span class="text-2xl font-extrabold text-slate-900">${roomClashes + classClashes}</span>
+              <span class="text-[11px] font-medium text-slate-500">${roomClashes} Room • ${classClashes} Class</span>
+            </div>
+          </div>
+        `;
+      }
+
+      if (badge) {
+        badge.textContent = `${totalConflicts} Unique Conflicts`;
+        badge.className = totalConflicts === 0
+          ? 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800'
+          : 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800';
+      }
+
+      if (navBadge) {
+        navBadge.textContent = totalConflicts;
+        navBadge.className = totalConflicts === 0
+          ? 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800'
+          : 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-200 text-rose-900';
+        navBadge.classList.remove('hidden');
+      }
+
+      renderConflictCardsList();
+    }
+
+    function renderConflictCardsList() {
+      const container = document.getElementById('conflict-list-container');
+      const paginationBar = document.getElementById('conflict-pagination-bar');
+      const toggleBtn = document.getElementById('btn-toggle-show-more');
       if (!container) return;
 
-      const activeId = getActiveFacultyId();
-      const notifs = getNotifications(activeId);
+      const conflicts = activeConflictCards || [];
+      const totalConflicts = conflicts.length;
 
-      if (notifs.length === 0) {
+      if (totalConflicts === 0) {
+        if (paginationBar) paginationBar.classList.add('hidden');
+        const daySelect = document.getElementById('scan-day-select');
+        const targetDay = daySelect ? daySelect.value : 'Selected Day';
+
         container.innerHTML = `
-          <div class="p-8 text-center bg-white rounded-2xl border border-dashed border-lilac-200 space-y-2">
-            <div class="w-10 h-10 rounded-full bg-lilac-100 text-lilac-600 flex items-center justify-center mx-auto text-sm">
-              <i class="fa-regular fa-bell"></i>
+          <div class="p-8 text-center bg-white rounded-2xl border border-emerald-200 shadow-sm space-y-3">
+            <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-xl">
+              <i class="fa-solid fa-circle-check"></i>
             </div>
-            <h4 class="text-xs font-bold text-slate-800">No Notifications</h4>
-            <p class="text-[11px] text-slate-500">You are all caught up on departmental tasks, duty assignments, and request updates.</p>
+            <div>
+              <h4 class="text-sm font-bold text-slate-900">Audit Passed — Zero Conflicts Detected on ${escapeHtml(targetDay)}</h4>
+              <p class="text-xs text-slate-600 mt-1 max-w-lg mx-auto leading-relaxed">
+                All scheduled sessions for ${escapeHtml(targetDay)} have been audited. No overlapping lectures, room double-bookings, or practical batch clashes were found.
+              </p>
+            </div>
+            <div class="flex items-center justify-center gap-2 pt-2">
+              <span class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
+                <i class="fa-solid fa-shield mr-1"></i>Audit Status: PASS
+              </span>
+            </div>
           </div>
         `;
         return;
       }
 
-      let html = '';
-      notifs.forEach(n => {
-        const isUnread = !n.isRead;
-        let iconClass = 'fa-info-circle text-lilac-600';
-        let bgClass = 'bg-lilac-100';
+      const displayCount = isShowingAllConflicts ? totalConflicts : Math.min(5, totalConflicts);
+      const visibleConflicts = conflicts.slice(0, displayCount);
 
-        const isWork = n.type === 'work_assigned' || (n.workDetails && n.workDetails.taskTitle);
+      if (paginationBar && toggleBtn) {
+        if (totalConflicts > 5) {
+          paginationBar.classList.remove('hidden');
+          const remaining = totalConflicts - 5;
+          toggleBtn.innerHTML = isShowingAllConflicts
+            ? '<i class="fa-solid fa-chevron-up mr-1.5"></i>Show Less (Display Top 5)'
+            : `<i class="fa-solid fa-chevron-down mr-1.5"></i>Show More (${remaining} Remaining Conflicts)`;
+        } else {
+          paginationBar.classList.add('hidden');
+        }
+      }
 
-        if (isWork) {
-          iconClass = 'fa-briefcase text-lilac-700';
-          bgClass = 'bg-lilac-100';
-        } else if (n.type === 'request_received') {
-          iconClass = 'fa-arrows-rotate text-purple-600';
-          bgClass = 'bg-purple-100';
-        } else if (n.type === 'request_accepted') {
-          iconClass = 'fa-circle-check text-emerald-600';
-          bgClass = 'bg-emerald-100';
-        } else if (n.type === 'request_rejected') {
-          iconClass = 'fa-circle-xmark text-rose-600';
-          bgClass = 'bg-rose-100';
+      container.innerHTML = visibleConflicts.map((c, idx) => {
+        let badgeColor = 'bg-rose-100 text-rose-800 border-rose-200';
+        let icon = 'fa-triangle-exclamation text-rose-600';
+        const typeStr = c.conflict_type || '';
+
+        if (typeStr.includes('Faculty') && !typeStr.includes('Room')) {
+          badgeColor = 'bg-purple-100 text-purple-800 border-purple-200';
+          icon = 'fa-user-xmark text-purple-600';
+        } else if (typeStr.includes('Room') && !typeStr.includes('Faculty')) {
+          badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
+          icon = 'fa-door-closed text-amber-600';
+        } else if (typeStr.includes('Class')) {
+          badgeColor = 'bg-blue-100 text-blue-800 border-blue-200';
+          icon = 'fa-users-slash text-blue-600';
         }
 
-        const dateStr = n.timestamp ? new Date(n.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-        const timeStr = n.timestamp ? new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        const s1 = c.session_1 || {};
+        const s2 = c.session_2 || {};
 
-        html += `
-          <div class="p-4 rounded-2xl border transition-all ${
-            isUnread
-              ? 'bg-lilac-50/60 border-lilac-300 shadow-xs'
-              : 'bg-white border-lilac-200/80 opacity-90'
-          } space-y-3">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex items-start gap-3">
-                <div class="w-9 h-9 rounded-xl ${bgClass} flex items-center justify-center shrink-0 text-sm">
-                  <i class="fa-solid ${iconClass}"></i>
-                </div>
-                <div class="space-y-1">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <h4 class="text-xs font-bold text-slate-900">${n.title}</h4>
-                    ${isWork ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">${n.workDetails?.status || 'Assigned'}</span>` : ''}
-                    ${isUnread ? '<span class="w-2 h-2 rounded-full bg-rose-500" title="Unread notification"></span>' : ''}
+        return `
+          <div class="p-4 rounded-2xl border border-rose-200 bg-white shadow-xs space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-xs">
+                  <i class="fa-solid ${icon}"></i>
+                </span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${badgeColor}">${escapeHtml(typeStr)}</span>
+                    <span class="text-xs font-bold text-slate-900">${escapeHtml(c.day)} • ${escapeHtml(c.time_slot)}</span>
                   </div>
-                  <p class="text-xs text-slate-600 leading-relaxed">${n.message}</p>
-                  <span class="text-[10px] text-slate-400 block">${dateStr} • ${timeStr}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold text-slate-400 font-mono">Pair #${idx + 1}</span>
+                <span class="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">Blocking Conflict</span>
+              </div>
+            </div>
+
+            <!-- Two-Session Comparison Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <!-- Session 1 -->
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-1">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Session 1 (${escapeHtml(s1.session_type || 'Lecture')})</span>
+                  <span class="text-[10px] font-mono text-slate-500 font-semibold">${escapeHtml(s1.time || '')}</span>
+                </div>
+                <div class="font-bold text-slate-900 text-xs">${escapeHtml(s1.subject || c.subject || 'N/A')}</div>
+                <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-600">
+                  <span>Class: <strong class="text-slate-800">${escapeHtml(s1.class || c.class_name || 'N/A')}</strong></span>
+                  <span>•</span>
+                  <span>Faculty: <strong class="text-lilac-800">${escapeHtml(s1.faculty || c.faculty || 'N/A')}</strong></span>
+                  <span>•</span>
+                  <span>Room: <strong class="text-slate-800">${escapeHtml(s1.room || c.room || 'N/A')}</strong></span>
                 </div>
               </div>
 
-              <div class="flex items-center gap-2 shrink-0">
-                ${
-                  isUnread
-                    ? `
-                  <button type="button" onclick="markSingleNotificationRead('${n.id}')" class="text-[11px] font-semibold text-lilac-700 hover:underline">
-                    Mark read
-                  </button>
-                    `
-                    : '<span class="text-[10px] text-slate-400 font-medium hidden sm:inline"><i class="fa-solid fa-check text-emerald-500 mr-0.5"></i> Read</span>'
-                }
+              <!-- Session 2 -->
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-1">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Session 2 (${escapeHtml(s2.session_type || 'Lecture')})</span>
+                  <span class="text-[10px] font-mono text-slate-500 font-semibold">${escapeHtml(s2.time || '')}</span>
+                </div>
+                <div class="font-bold text-slate-900 text-xs">${escapeHtml(s2.subject || c.subject || 'N/A')}</div>
+                <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-600">
+                  <span>Class: <strong class="text-slate-800">${escapeHtml(s2.class || c.class_name || 'N/A')}</strong></span>
+                  <span>•</span>
+                  <span>Faculty: <strong class="text-lilac-800">${escapeHtml(s2.faculty || c.faculty || 'N/A')}</strong></span>
+                  <span>•</span>
+                  <span>Room: <strong class="text-slate-800">${escapeHtml(s2.room || c.room || 'N/A')}</strong></span>
+                </div>
               </div>
             </div>
 
-            ${
-              isWork && n.workDetails
-                ? `
-            <div class="p-3 rounded-xl bg-white/90 border border-lilac-200/70 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-              <div>
-                <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Assigned Date</span>
-                <span class="font-semibold text-slate-800">${n.workDetails.assignedDate || dateStr}</span>
-              </div>
-              <div>
-                <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Deadline</span>
-                <span class="font-bold text-rose-700">${n.workDetails.deadline || 'Standard'}</span>
-              </div>
-              <div>
-                <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Assigned By</span>
-                <span class="font-semibold text-slate-800">${n.workDetails.assignedBy || 'Admin / HOD'}</span>
-              </div>
-              <div>
-                <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Status</span>
-                <span class="font-semibold text-amber-800">${n.workDetails.status || 'Assigned'}</span>
+            <!-- Reason Description Box -->
+            <div class="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200 text-xs text-rose-900 flex items-start gap-2">
+              <i class="fa-solid fa-circle-exclamation text-rose-600 mt-0.5 shrink-0"></i>
+              <div class="space-y-0.5">
+                <span class="font-bold">Conflict Reason:</span>
+                <p class="leading-relaxed text-[11px]">${escapeHtml(c.reason || 'Scheduling overlap detected.')}</p>
               </div>
             </div>
-                `
-                : ''
-            }
 
-            <div class="flex items-center justify-between pt-2 border-t border-lilac-100/70">
-              <span class="text-[10px] text-slate-500 font-medium">
-                ${n.workDetails?.category ? `<i class="fa-solid fa-tag text-lilac-500 mr-1"></i>${n.workDetails.category}` : ''}
-              </span>
-              <button type="button" onclick="openNotificationDetailsModal('${n.id}')" class="px-3 py-1.5 rounded-xl bg-lilac-600 hover:bg-lilac-700 text-white font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition-all">
-                <i class="fa-solid fa-eye text-[11px]"></i>
-                <span>View Details</span>
+            <!-- Possible Correction Box -->
+            <div class="p-2.5 rounded-xl bg-lilac-50/70 border border-lilac-200 text-xs text-lilac-900 flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2">
+                <i class="fa-solid fa-lightbulb text-lilac-600 mt-0.5 shrink-0"></i>
+                <div class="space-y-0.5">
+                  <span class="font-bold text-lilac-950">Possible Correction:</span>
+                  <p class="leading-relaxed text-[11px] text-slate-700">${escapeHtml(c.correction || 'Reschedule one session to an alternate open time slot or reassign an available instructor.')}</p>
+                </div>
+              </div>
+              <button type="button" onclick="openReplacementForConflict('${escapeHtml(c.id)}', '${escapeHtml(c.day)}', '${escapeHtml(c.time_slot)}', '${escapeHtml(s1.subject || c.subject)}', '${escapeHtml(s1.class || c.class_name)}', '${escapeHtml(s1.room || c.room)}')" class="px-2.5 py-1 bg-white hover:bg-lilac-100 text-lilac-800 border border-lilac-300 rounded-lg text-[10px] font-bold shadow-2xs transition-all shrink-0 cursor-pointer">
+                Find Replacement
               </button>
             </div>
           </div>
         `;
-      });
+      }).join('');
+    }
 
-      container.innerHTML = html;
+    // 2. NOTIFICATIONS MODULE LOGIC (DATABASE SINGLE SOURCE OF TRUTH)
+    // =========================================================================
+    let cachedDbUnreadNotificationsCount = null;
+    let cachedDbNotifications = [];
+
+    async function renderFacultyNotifications() {
+      const container = document.getElementById('faculty-notifications-container');
+      const previewContainer = document.getElementById('faculty-recent-notifications-preview');
+      if (!container && !previewContainer) return;
+
+      let notifs = [];
+      try {
+        const token = localStorage.getItem('edunova_token');
+        const res = await fetch('/api/notifications', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          notifs = await res.json();
+          cachedDbNotifications = notifs;
+        }
+      } catch (err) {
+        console.warn("Could not fetch notifications from database:", err);
+      }
+
+      // Filter and deduplicate distinct official notices
+      const seenIds = new Set();
+      const uniqueNotifs = [];
+      for (const n of notifs) {
+        if (!seenIds.has(n.id)) {
+          seenIds.add(n.id);
+          uniqueNotifs.push(n);
+        }
+      }
+
+      const unreadCount = uniqueNotifs.filter(n => !n.is_read).length;
+      cachedDbUnreadNotificationsCount = unreadCount;
+      updateFacultyNotificationBadges(unreadCount);
+
+      if (uniqueNotifs.length === 0) {
+        const emptyHtml = `
+          <div class="p-8 text-center bg-white rounded-2xl border border-dashed border-lilac-200 space-y-2">
+            <div class="w-10 h-10 rounded-full bg-lilac-100 text-lilac-600 flex items-center justify-center mx-auto text-sm">
+              <i class="fa-regular fa-bell-slash"></i>
+            </div>
+            <h4 class="text-xs font-bold text-slate-800">No department notifications available.</h4>
+            <p class="text-[11px] text-slate-500">There are currently no active circulars or announcements posted by the HOD/admin for AI & DS.</p>
+          </div>
+        `;
+        if (container) container.innerHTML = emptyHtml;
+        if (previewContainer) {
+          previewContainer.innerHTML = `
+            <div class="p-4 text-center bg-cream-50/70 rounded-xl border border-cream-200 text-xs text-slate-500">
+              <i class="fa-regular fa-bell-slash text-slate-400 mb-1 block"></i>
+              No department notifications available.
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // Populate preview on dashboard
+      if (previewContainer) {
+        previewContainer.innerHTML = uniqueNotifs.slice(0, 2).map(n => `
+          <div class="p-3 bg-cream-50/70 rounded-xl border border-cream-200">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-lilac-800 uppercase tracking-wider">HOD Announcement</span>
+              ${!n.is_read ? '<span class="w-2 h-2 rounded-full bg-rose-500" title="Unread"></span>' : ''}
+            </div>
+            <p class="font-bold text-slate-800 mt-0.5 text-xs">${escapeHtml(n.title)}</p>
+            <p class="text-[11px] text-slate-500 mt-1 line-clamp-2">${escapeHtml(n.message || '')}</p>
+          </div>
+        `).join('');
+      }
+
+      // Populate main container
+      if (container) {
+        container.innerHTML = uniqueNotifs.map(n => {
+          const isUnread = !n.is_read;
+          const dateStr = n.created_at ? new Date(n.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+          const timeStr = n.created_at ? new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+
+          return `
+            <div class="p-4 rounded-2xl border transition-all ${
+              isUnread
+                ? 'bg-lilac-50/60 border-lilac-300 shadow-xs'
+                : 'bg-white border-lilac-200/80 opacity-90'
+            } space-y-3">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-lilac-100 flex items-center justify-center shrink-0 text-sm text-lilac-700">
+                    <i class="fa-solid fa-bullhorn"></i>
+                  </div>
+                  <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h4 class="text-xs font-bold text-slate-900">${escapeHtml(n.title)}</h4>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-lilac-100 text-lilac-800">${escapeHtml(n.publisher_name || 'Dr. Dhanraj R. Dhotre (HOD)')}</span>
+                      ${isUnread ? '<span class="w-2 h-2 rounded-full bg-rose-500" title="Unread notice"></span>' : ''}
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">${escapeHtml(n.message)}</p>
+                    <span class="text-[10px] text-slate-400 block">${dateStr} • ${timeStr}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  ${
+                    isUnread
+                      ? `
+                    <button type="button" onclick="markSingleFacultyNotificationRead(${n.id})" class="text-[11px] font-semibold text-lilac-700 hover:underline cursor-pointer">
+                      Mark read
+                    </button>
+                      `
+                      : '<span class="text-[10px] text-slate-400 font-medium hidden sm:inline"><i class="fa-solid fa-check text-emerald-500 mr-0.5"></i> Read</span>'
+                  }
+                  <button type="button" onclick="openNotificationDetailsModal(${n.id})" class="px-2.5 py-1 rounded-xl bg-lilac-50 hover:bg-lilac-100 text-lilac-700 font-bold text-xs flex items-center gap-1 cursor-pointer transition-all">
+                    <i class="fa-solid fa-eye text-[10px]"></i>
+                    <span>View</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function updateFacultyNotificationBadges(unreadCount) {
+      const bellBadge = document.getElementById('faculty-header-notif-badge');
+      const navBadge = document.getElementById('fnav-notif-badge');
+      if (bellBadge) {
+        bellBadge.textContent = unreadCount;
+        bellBadge.classList.toggle('hidden', unreadCount === 0);
+      }
+      if (navBadge) {
+        navBadge.textContent = unreadCount;
+        navBadge.classList.toggle('hidden', unreadCount === 0);
+      }
     }
 
     function openNotificationDetailsModal(notifId) {
-      const activeId = getActiveFacultyId();
-      const notifs = getNotifications(activeId);
-      const notif = notifs.find(n => n.id === notifId) || getNotifications().find(n => n.id === notifId);
+      const notif = cachedDbNotifications.find(n => n.id === notifId) || getNotifications().find(n => n.id === String(notifId));
       if (!notif) return;
 
       document.getElementById('notif-modal-id').value = notif.id;
       document.getElementById('notif-modal-heading').textContent = notif.title;
-      document.getElementById('notif-modal-task-title').textContent = (notif.workDetails && notif.workDetails.taskTitle) ? notif.workDetails.taskTitle : notif.title;
+      document.getElementById('notif-modal-task-title').textContent = notif.title;
       document.getElementById('notif-modal-message').textContent = notif.message;
       
       const categoryEl = document.getElementById('notif-modal-category');
       if (categoryEl) {
-        categoryEl.textContent = (notif.workDetails && notif.workDetails.category) ? notif.workDetails.category : (notif.type === 'work_assigned' ? 'Work Assignment' : 'Department Notice');
+        categoryEl.textContent = 'Official HOD Circular';
       }
 
+      const isRead = notif.is_read || notif.isRead;
       const statusBadge = document.getElementById('notif-modal-status-badge');
       if (statusBadge) {
-        const statusText = (notif.workDetails && notif.workDetails.status) ? notif.workDetails.status : (notif.isRead ? 'Completed / Read' : 'Assigned / Pending');
-        statusBadge.textContent = statusText;
-        if (statusText === 'Completed' || notif.isRead) {
-          statusBadge.className = 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 shrink-0';
-        } else {
-          statusBadge.className = 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 shrink-0';
-        }
+        statusBadge.textContent = isRead ? 'Marked as Read' : 'Unread Circular';
+        statusBadge.className = isRead
+          ? 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 shrink-0'
+          : 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 shrink-0';
       }
 
-      document.getElementById('notif-modal-assigned-by').textContent = (notif.workDetails && notif.workDetails.assignedBy) ? notif.workDetails.assignedBy : 'Admin / HOD';
-      document.getElementById('notif-modal-assigned-date').textContent = (notif.workDetails && notif.workDetails.assignedDate) ? notif.workDetails.assignedDate : (notif.timestamp ? new Date(notif.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--');
-      document.getElementById('notif-modal-deadline').textContent = (notif.workDetails && notif.workDetails.deadline) ? notif.workDetails.deadline : 'Flexible / Standard';
-      document.getElementById('notif-modal-venue').textContent = (notif.workDetails && notif.workDetails.venue) ? notif.workDetails.venue : 'Department / Campus';
-      document.getElementById('notif-modal-notes').textContent = (notif.workDetails && notif.workDetails.notes) ? notif.workDetails.notes : notif.message;
+      document.getElementById('notif-modal-assigned-by').textContent = notif.publisher_name || 'Dr. Dhanraj R. Dhotre (HOD)';
+      document.getElementById('notif-modal-assigned-date').textContent = notif.created_at ? new Date(notif.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
+      document.getElementById('notif-modal-deadline').textContent = 'Department Notice';
+      document.getElementById('notif-modal-venue').textContent = 'AI & DS Department';
+      document.getElementById('notif-modal-notes').textContent = notif.message;
 
       const readStatusEl = document.getElementById('notif-modal-read-status');
       const markReadBtn = document.getElementById('notif-modal-mark-read-btn');
-      if (notif.isRead) {
+      if (isRead) {
         readStatusEl.innerHTML = '<span class="text-emerald-700 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Marked as Read</span>';
         if (markReadBtn) markReadBtn.classList.add('hidden');
       } else {
@@ -2256,12 +2889,10 @@
       document.getElementById('modal-notification-details').classList.add('hidden');
     }
 
-    function submitNotificationModalMarkRead() {
+    async function submitNotificationModalMarkRead() {
       const id = document.getElementById('notif-modal-id').value;
       if (!id) return;
-      markNotificationRead(id);
-      renderFacultyNotifications();
-      updateFacultyBadgeCounters();
+      await markSingleFacultyNotificationRead(id);
 
       const readStatusEl = document.getElementById('notif-modal-read-status');
       const markReadBtn = document.getElementById('notif-modal-mark-read-btn');
@@ -2273,18 +2904,37 @@
       }
     }
 
-    function markSingleNotificationRead(notifId) {
-      markNotificationRead(notifId);
-      renderFacultyNotifications();
+    async function markSingleFacultyNotificationRead(notifId) {
+      try {
+        const token = localStorage.getItem('edunova_token');
+        await fetch(`/api/notifications/${notifId}/read`, {
+          method: 'PUT',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+      } catch (err) {
+        console.error("Failed to mark notification read:", err);
+      }
+      await renderFacultyNotifications();
       updateFacultyBadgeCounters();
     }
 
-    function markAllFacultyNotificationsRead() {
-      const activeId = getActiveFacultyId();
-      const notifs = getNotifications(activeId);
-      notifs.forEach(n => markNotificationRead(n.id));
-      renderFacultyNotifications();
+    async function markAllFacultyNotificationsRead() {
+      try {
+        const token = localStorage.getItem('edunova_token');
+        await fetch('/api/notifications/read-all', {
+          method: 'PUT',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+      } catch (err) {
+        console.error("Failed to mark all notifications read:", err);
+      }
+      await renderFacultyNotifications();
       updateFacultyBadgeCounters();
+    }
+
+    // Backward-compatibility aliases
+    function markSingleNotificationRead(notifId) {
+      markSingleFacultyNotificationRead(notifId);
     }
 
     // Simulation Day Change
@@ -2492,7 +3142,7 @@
       const theorySlots = MASTER_TIMETABLE.filter(item => 
         item.facultyId === activeId && 
         item.subject === subject && 
-        item.classDiv === classDiv && 
+        (item.classDiv === classDiv || (item.classDiv && classDiv && item.classDiv.replace(/\s*\([A-Za-z0-9\s]+\)$/, '') === classDiv.replace(/\s*\([A-Za-z0-9\s]+\)$/, ''))) && 
         item.type === 'Theory'
       );
 
@@ -2705,7 +3355,7 @@
       const labSlots = MASTER_TIMETABLE.filter(item => 
         item.facultyId === activeId && 
         item.subject === subject && 
-        item.classDiv === classDiv && 
+        (item.classDiv === classDiv || (item.classDiv && classDiv && item.classDiv.replace(/\s*\([A-Za-z0-9\s]+\)$/, '') === classDiv.replace(/\s*\([A-Za-z0-9\s]+\)$/, ''))) && 
         (item.type === 'Practical/Lab' || item.type === 'Lab Practical')
       );
 
@@ -2921,7 +3571,7 @@
       const slots = MASTER_TIMETABLE.filter(item => 
         item.facultyId === activeId && 
         item.subject === subject && 
-        item.classDiv === classDiv
+        (item.classDiv === classDiv || (item.classDiv && classDiv && item.classDiv.replace(/\s*\([A-Za-z0-9\s]+\)$/, '') === classDiv.replace(/\s*\([A-Za-z0-9\s]+\)$/, '')))
       );
 
       const slotSelect = document.getElementById('rec-lecture-slot');

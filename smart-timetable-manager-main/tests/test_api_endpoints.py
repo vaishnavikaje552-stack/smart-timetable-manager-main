@@ -206,7 +206,7 @@ def test_api_rooms_and_occupancy(client, faculty_token):
     assert res.status_code == 200
     rooms = res.get_json()
     assert len(rooms) >= 6
-    assert any(r["name"] == "Room 101" for r in rooms)
+    assert any(r["name"] in ("Room 102", "Room 101") for r in rooms)
 
     # Test occupancy check for a Monday lecture slot
     res_occ = client.get("/api/rooms?day=Monday&start_time=10:15&end_time=11:15", headers={"Authorization": f"Bearer {faculty_token}"})

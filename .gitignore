@@ -32,6 +32,9 @@ Thumbs.db
 backend/*.backup*
 backend/*.db.backup*
 
+# Temporary inspection files
+scratch/
+
 # Note: backend/edunova.db contains your existing project data.
 # For a private GitHub repository, keep backend/edunova.db tracked so Render can initialize the persistent disk.
 # If you ever make the repository public, uncomment the line below:

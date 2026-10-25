@@ -121,22 +121,33 @@ def test_secret_key_configuration(monkeypatch):
     assert test_app.config["SECRET_KEY"] == custom_secret
 
 
+def _resolve_project_file(rel_path):
+    for candidate in [
+        os.path.abspath(rel_path),
+        os.path.abspath(os.path.join("smart-timetable-manager-main", rel_path)),
+        os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), rel_path))
+    ]:
+        if os.path.exists(candidate):
+            return candidate
+    return os.path.abspath(rel_path)
+
+
 def test_requirements_and_render_config():
     """Ensure gunicorn and render configuration files exist and are valid."""
     # Check backend requirements
-    backend_req = os.path.abspath("smart-timetable-manager-main/backend/requirements.txt")
+    backend_req = _resolve_project_file("backend/requirements.txt")
     assert os.path.exists(backend_req)
     with open(backend_req, "r") as f:
         assert "gunicorn" in f.read().lower()
 
     # Check root requirements
-    root_req = os.path.abspath("smart-timetable-manager-main/requirements.txt")
+    root_req = _resolve_project_file("requirements.txt")
     assert os.path.exists(root_req)
     with open(root_req, "r") as f:
         assert "gunicorn" in f.read().lower()
 
     # Check render.yaml Blueprint
-    render_yaml = os.path.abspath("smart-timetable-manager-main/render.yaml")
+    render_yaml = _resolve_project_file("render.yaml")
     assert os.path.exists(render_yaml)
     with open(render_yaml, "r") as f:
         render_content = f.read()

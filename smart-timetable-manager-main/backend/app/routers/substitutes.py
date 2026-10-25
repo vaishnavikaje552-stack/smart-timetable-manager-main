@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Faculty, TimetableEntry, SubstituteRequest
+from ..formatters import format_display_class
 from ..auth import current_user, APIError
 
 router = Blueprint("substitutes", __name__, url_prefix="/substitutes")
@@ -197,11 +198,17 @@ def create_substitute_request(user: Faculty):
     if not recommended:
         raise APIError("Recommended faculty not found", 404)
 
+    disp_class = format_display_class(
+        timetable.class_name,
+        timetable.batch,
+        timetable.is_lab,
+        getattr(timetable, "session_type", "Practical" if timetable.is_lab else "Theory")
+    )
     req = SubstituteRequest(
         requester_id=user.id,
         recommended_id=recommended_id,
         subject=timetable.subject,
-        class_name=timetable.class_name,
+        class_name=disp_class,
         day=timetable.day,
         slot=f"{timetable.start_time}-{timetable.end_time}",
         reason=reason,

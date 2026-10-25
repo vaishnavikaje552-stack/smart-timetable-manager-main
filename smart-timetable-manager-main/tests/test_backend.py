@@ -305,7 +305,7 @@ def test_timetable_clash_detection_on_create(client, admin_token):
         "end_time": "10:00",
         "subject": "Room Overlap Subject",
         "class_name": "BE-AD1",
-        "room": "Room 101",
+        "room": "Room 102",
         "faculty_id": 3
     }, headers={"Authorization": f"Bearer {admin_token}"})
     assert res_room_clash.status_code == 409
@@ -367,7 +367,7 @@ def test_room_occupancy(client, faculty_token):
     assert "occupied_rooms" in data
     assert "available_rooms" in data
     occupied_names = [r["room_name"] for r in data["occupied_rooms"]]
-    assert "Room 101" in occupied_names
+    assert any(name in occupied_names for name in ["Room 102", "Room 101"])
 
 
 # ============================================================================
